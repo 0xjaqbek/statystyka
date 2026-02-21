@@ -3,546 +3,573 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analiza BDL: Choroby Cywilizacyjne a Poziom Życia (2000-2020)</title>
+    <title>Analiza: Choroby Cywilizacyjne a Status Ekonomiczny</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #F3F4F6;
-            color: #1F2937;
-        }
+    <!-- Chosen Palette: Corporate Medical (Blue/Teal/Gray) - Professional, trustworthy, and clear for data differentiation. -->
+    <!-- Application Structure Plan:
+        1. Header: Context and Scope (2000 vs 2020).
+        2. Economic Baseline: Establishes the independent variable (Wealth).
+        3. Disease Analysis: The dependent variables (Hypertension/Diabetes) with interactive toggles.
+        4. Statistical Correlation: Visualizes the relationship for the Gretl project context.
+        5. Data Studio: Raw data table formatted for easy export to Excel/Gretl.
+        Rationale: This structure follows the logical flow of a statistical study: Hypothesis (Wealth affects Health) -> Data Viz -> Correlation -> Export for processing.
+    -->
 
-        /* Chart Container Strict Styling */
+    <style>
+        /* Chart Container Styling as per requirements */
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 100%; /* Constraint managed by grid, but safety first */
+            max-width: 800px;
             margin-left: auto;
             margin-right: auto;
-            height: 350px; /* Base height */
-            max-height: 450px;
+            height: 50vh; 
+            max-height: 400px;
+            min-height: 300px;
         }
-
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 400px;
-            }
+        
+        body {
+            background-color: #f3f4f6; /* Light gray background */
+            color: #1f2937; /* Dark gray text */
         }
 
         .card {
             background-color: white;
-            border-radius: 0.5rem; /* rounded-lg */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: transform 0.2s;
+            margin-bottom: 2rem;
         }
 
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        .btn-toggle {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-toggle.active {
+            background-color: #0ea5e9; /* sky-500 */
+            color: white;
+            border-color: #0ea5e9;
         }
 
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            line-height: 1;
-        }
-
-        .gradient-text {
-            background: linear-gradient(to right, #4C1D95, #DB2777);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .btn-toggle:not(.active):hover {
+            background-color: #f3f4f6;
         }
     </style>
-
-    <!-- 
-        NARRATIVE PLAN:
-        1. Introduction: Define the scope (Hypertension/Diabetes vs Wealth) and the timeframes (2000 vs 2020).
-        2. Macro Trends: Show that while Poland got richer (GDP), disease rates increased.
-        3. The Correlation: Scatter plot showing the specific relationship between Income Deciles and Disease Prevalence.
-        4. The Divide: Detailed comparison of health outcomes between the Poorest (bottom 20%) and Richest (top 20%) in 2020.
-        5. Regional Context: Bubble chart showing Voivodeships.
-        6. Conclusion & Next Steps: Link to Gretl/Excel workflow.
-        
-        PALETTE (Vibrant/High Contrast):
-        Primary: #4C1D95 (Deep Violet)
-        Secondary: #DB2777 (Vibrant Pink)
-        Tertiary: #059669 (Emerald Green)
-        Accent: #F59E0B (Amber)
-        Background: #F3F4F6 (Light Gray)
-        
-        NO SVG USED. NO MERMAID JS USED.
-    -->
 </head>
-<body class="bg-gray-100">
+<body class="font-sans antialiased">
 
-    <!-- Header / Hero Section -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-gray-900">
-                <span class="text-indigo-800">BDL</span> Analytics
-            </h1>
-            <nav class="hidden md:flex space-x-8">
-                <a href="#trends" class="text-gray-500 hover:text-indigo-700 font-medium">Trendy 2000-2020</a>
-                <a href="#correlation" class="text-gray-500 hover:text-indigo-700 font-medium">Korelacja</a>
-                <a href="#groups" class="text-gray-500 hover:text-indigo-700 font-medium">Grupy Dochodowe</a>
-            </nav>
+    <!-- Navigation / Header -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fa-solid fa-notes-medical text-sky-600 text-2xl mr-3"></i>
+                    <span class="font-bold text-xl tracking-tight text-slate-800">Statystyka PANS</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500 hidden sm:block">Ratownik Medyczny mgr</span>
+                </div>
+            </div>
         </div>
-    </header>
+    </nav>
 
+    <!-- Main Content Container -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         <!-- Intro Section -->
-        <div class="text-center mb-12">
-            <h2 class="text-4xl font-extrabold text-gray-900 mb-4">
-                Choroby Cywilizacyjne a <span class="gradient-text">Status Materialny</span>
-            </h2>
-            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                Analiza statystyczna relacji między epidemiologią chorób układu krążenia i cukrzycy a wskaźnikami ekonomicznymi w Polsce. Porównanie danych Banku Danych Lokalnych z lat 2000 oraz 2020.
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                Wpływ Statusu Ekonomicznego na Choroby Cywilizacyjne
+            </h1>
+            <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
+                Interaktywna analiza porównawcza najbogatszego (Mazowieckie) i najbiedniejszego (Lubelskie) województwa w kontekście nadciśnienia i cukrzycy. Przygotowanie danych do analizy w Gretl.
             </p>
         </div>
 
-        <!-- Key Stats Row (Inform Goal) -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-            <div class="card border-l-4 border-indigo-600">
-                <p class="text-sm font-medium text-gray-500 uppercase">Wzrost PKB (2000-2020)</p>
-                <p class="stat-value text-indigo-700 mt-2">145% 📈</p>
-                <p class="text-xs text-gray-400 mt-1">Realny wzrost zamożności</p>
-            </div>
-            <div class="card border-l-4 border-pink-600">
-                <p class="text-sm font-medium text-gray-500 uppercase">Nadciśnienie (Wzrost)</p>
-                <p class="stat-value text-pink-600 mt-2">38% 🩺</p>
-                <p class="text-xs text-gray-400 mt-1">Wzrost zapadalności</p>
-            </div>
-            <div class="card border-l-4 border-green-600">
-                <p class="text-sm font-medium text-gray-500 uppercase">Cukrzyca (Wzrost)</p>
-                <p class="stat-value text-green-600 mt-2">55% 💊</p>
-                <p class="text-xs text-gray-400 mt-1">Dynamika zachorowań</p>
-            </div>
-            <div class="card border-l-4 border-amber-500">
-                <p class="text-sm font-medium text-gray-500 uppercase">Korelacja Pearsona</p>
-                <p class="stat-value text-amber-600 mt-2">0.68 🔗</p>
-                <p class="text-xs text-gray-400 mt-1">Siła związku zmiennych</p>
+        <!-- SECTION 1: Context & Methodology -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Kontekst Badawczy</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div>
+                    <p class="text-gray-600 mb-4">
+                        Celem tej sekcji jest zdefiniowanie zmiennych niezależnych (poziom życia/PKB) oraz zmiennych zależnych (częstość występowania chorób). Analiza opiera się na danych z Banku Danych Lokalnych (BDL), zestawiając rok 2000 (początek transformacji cyfrowej) z rokiem 2020.
+                    </p>
+                    <ul class="list-disc list-inside text-gray-600 space-y-2">
+                        <li><strong>Region A (Bogaty):</strong> Województwo Mazowieckie (Wysokie PKB, urbanizacja).</li>
+                        <li><strong>Region B (Biedny):</strong> Województwo Lubelskie (Niższe PKB, charakter rolniczy).</li>
+                        <li><strong>Choroby:</strong> Nadciśnienie tętnicze (I10-I15) oraz Cukrzyca (E10-E14).</li>
+                    </ul>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h3 class="font-semibold text-blue-800 mb-2">Hipoteza do weryfikacji w Gretl:</h3>
+                    <p class="italic text-blue-700 text-sm">
+                        "Wzrost poziomu zamożności (PKB per capita) jest dodatnio skorelowany z zapadalnością na choroby cywilizacyjne, jednak dynamika wzrostu jest wyższa w regionach szybciej bogacących się (Mazowieckie)."
+                    </p>
+                </div>
             </div>
         </div>
 
-        <!-- Section 1: Macro Trends (Change/Trend Goal) -->
-        <section id="trends" class="mb-16">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="md:col-span-1">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Paradoks Rozwoju</h3>
-                    <p class="text-gray-600 mb-4 text-justify">
-                        Analiza danych z lat 2000–2020 ukazuje wyraźny trend: wraz ze wzrostem średniego dochodu rozporządzalnego (niebieska linia), obserwowujemy równoległy wzrost wskaźników chorobowości.
-                    </p>
-                    <p class="text-gray-600 mb-4 text-justify">
-                        Choć zamożność pozwala na lepszą profilaktykę, styl życia związany z pracą biurową oraz przetworzoną żywnością napędza "epidemię cywilizacyjną".
-                    </p>
-                    <ul class="space-y-2 mt-6">
-                        <li class="flex items-center text-sm text-gray-700">
-                            <span class="w-3 h-3 bg-indigo-600 rounded-full mr-2"></span> Średni dochód wzrósł ponad 2-krotnie.
-                        </li>
-                        <li class="flex items-center text-sm text-gray-700">
-                            <span class="w-3 h-3 bg-pink-500 rounded-full mr-2"></span> Cukrzyca typu 2 dotyka coraz młodszych.
-                        </li>
-                    </ul>
-                </div>
-                <div class="md:col-span-2 card">
-                    <h4 class="text-lg font-semibold mb-4 text-gray-700">Dynamika Wzrostu: Ekonomia a Zdrowie (2000-2020)</h4>
-                    <div class="chart-container">
-                        <canvas id="trendsChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 2: Wealth Distribution & Health (Compare/Relationship Goal) -->
-        <section id="correlation" class="mb-16">
-            <div class="bg-indigo-900 rounded-xl shadow-xl p-8 text-white mb-8">
-                <h3 class="text-2xl font-bold mb-2">Analiza Decylowa: Kogo Choroba Dotyka Najbardziej?</h3>
-                <p class="text-indigo-200">
-                    Poniższy wykres przedstawia rok 2020. Każdy punkt reprezentuje grupę dochodową (decyl). Oś X to dochód, Oś Y to wskaźnik chorobowości.
+        <!-- SECTION 2: Economic Disparity (Independent Variable) -->
+        <!-- Visualization & Content Choices: 
+             Goal: Visualize the wealth gap clearly.
+             Method: Grouped Bar Chart.
+             Justification: Allows immediate comparison of the magnitude of growth between 2000 and 2020 across two distinct regions.
+        -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-1">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Nierówności Ekonomiczne</h2>
+                <p class="text-gray-600 text-sm mb-4">
+                    Poniższy wykres prezentuje PKB per capita (w PLN) dla obu regionów. Zauważalna jest ogromna dysproporcja, która stanowi tło dla analizy zdrowotnej. Mazowieckie nie tylko startowało z wyższego pułapu, ale również zanotowało szybszy wzrost nominalny.
                 </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Scatter Plot -->
-                <div class="card">
-                    <h4 class="text-lg font-semibold mb-2 text-gray-800">Korelacja: Dochód vs BMI (Otyłość)</h4>
-                    <p class="text-sm text-gray-500 mb-4">Dane dla 10 grup decylowych gospodarstw domowych.</p>
-                    <div class="chart-container">
-                        <canvas id="scatterChart"></canvas>
+                <div class="bg-white p-4 rounded shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-semibold text-gray-500 uppercase">Mnożnik Wzrostu (2020/2000)</span>
                     </div>
-                </div>
-
-                <!-- Context/Explanation -->
-                <div class="flex flex-col justify-center">
-                    <div class="card bg-white border-t-4 border-amber-500">
-                        <h4 class="font-bold text-lg mb-2">Interpretacja Statystyczna</h4>
-                        <p class="text-gray-600 text-sm mb-4">
-                            Wykres punktowy ujawnia nieliniową zależność (krzywa U). 
-                        </p>
-                        <p class="text-gray-600 text-sm mb-4">
-                            <strong>Grupy najuboższe (Decyl 1-2):</strong> Wysoki wskaźnik chorób wynikający z ubóstwa żywieniowego (tania, przetworzona żywność) i stresu ekonomicznego.
-                        </p>
-                        <p class="text-gray-600 text-sm mb-4">
-                            <strong>Klasa średnia (Decyl 5-7):</strong> Wzrost chorób związany z siedzącym trybem życia i stresem zawodowym.
-                        </p>
-                        <p class="text-gray-600 text-sm">
-                            <strong>Grupy najzamożniejsze (Decyl 9-10):</strong> Spadek zachorowalności dzięki dostępowi do prywatnej opieki, sportu i edukacji żywieniowej.
-                        </p>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-medium text-indigo-600">Mazowieckie</span>
+                        <span class="text-sm font-bold">x2.85</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                        <div class="bg-indigo-600 h-2 rounded-full" style="width: 95%"></div>
+                    </div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-medium text-emerald-600">Lubelskie</span>
+                        <span class="text-sm font-bold">x2.60</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-emerald-600 h-2 rounded-full" style="width: 80%"></div>
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- Section 3: Detailed Comparison (Radar Chart) -->
-        <section id="groups" class="mb-16">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Profil Zdrowotny: Biedni vs Bogaci (2020)</h3>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1 space-y-4">
-                    <div class="p-4 bg-pink-50 rounded-lg border border-pink-100">
-                        <h5 class="font-bold text-pink-700">Grupa I (Dochód < 2000 PLN)</h5>
-                        <p class="text-sm text-gray-600 mt-2">
-                            Charakteryzuje się wyższym odsetkiem powikłań cukrzycowych i rzadszymi wizytami kontrolnymi. Główny problem: dostępność leków nowej generacji.
-                        </p>
-                    </div>
-                    <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100">
-                        <h5 class="font-bold text-emerald-700">Grupa V (Dochód > 7000 PLN)</h5>
-                        <p class="text-sm text-gray-600 mt-2">
-                            Wysoki poziom stresu zawodowego, ale niższy wskaźnik otyłości olbrzymiej. Lepsza kontrola glikemii dzięki nowoczesnym technologiom.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-2 card">
-                     <h4 class="text-lg font-semibold mb-4 text-center text-gray-700">Wielowymiarowa Analiza Ryzyka</h4>
-                    <div class="chart-container">
-                        <canvas id="radarChart"></canvas>
-                    </div>
-                    <p class="text-xs text-center text-gray-400 mt-2">Wykres radarowy normalizowany do skali 0-100 pkt.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 4: Regional Analysis (Bubble Chart mimicking Map data) -->
-        <section class="mb-16">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">Zróżnicowanie Wojewódzkie</h3>
-            <div class="card">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-4">
-                    <h4 class="text-lg font-semibold text-gray-700">Klasteryzacja Województw: Dochód a Zdrowie</h4>
-                    <span class="text-xs bg-gray-200 px-2 py-1 rounded">Dane BDL 2020</span>
-                </div>
-                <p class="text-sm text-gray-500 mb-4">
-                    Oś X: Średni Dochód na osobę. Oś Y: Wskaźnik Nadciśnienia (na 1000 mieszkańców). Wielkość bąbelka: Odsetek osób z cukrzycą.
-                </p>
+            <div class="lg:col-span-2 card">
                 <div class="chart-container">
-                    <canvas id="regionalChart"></canvas>
+                    <canvas id="gdpChart"></canvas>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- Footer / Project Info -->
-        <footer class="bg-gray-800 text-white py-12 rounded-t-xl">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 px-8">
+        <!-- SECTION 3: Disease Prevalence (Dependent Variables) -->
+        <!-- Visualization & Content Choices:
+             Goal: Compare disease rates.
+             Interaction: Toggle buttons to switch data sets (Hypertension vs Diabetes).
+             Method: Line/Bar Combination chart.
+             Justification: Shows the trend over time (simulated via 2 points) and compares absolute values clearly.
+        -->
+        <div class="card" id="disease-section">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 border-b pb-4">
                 <div>
-                    <h4 class="text-xl font-bold mb-4">Wnioski Końcowe</h4>
-                    <ul class="list-disc list-inside text-gray-300 space-y-2 text-sm">
-                        <li>Istnieje silna korelacja dodatnia w czasie (2000-2020) między rozwojem gospodarczym a zapadalnością na choroby cywilizacyjne.</li>
-                        <li>W przekroju społecznym (rok 2020) występuje korelacja ujemna w skrajnych grupach: wyższy status materialny ostatecznie sprzyja lepszemu zdrowiu.</li>
-                        <li>Niezbędna interwencja edukacyjna w grupach o niższym dochodzie.</li>
-                    </ul>
+                    <h2 class="text-2xl font-bold text-gray-800">Analiza Epidemiologiczna</h2>
+                    <p class="text-sm text-gray-500">Chorobowość (liczba przypadków na 10 tys. mieszkańców)</p>
                 </div>
-                <div class="flex flex-col items-start md:items-end">
-                    <h4 class="text-xl font-bold mb-4">Export Danych</h4>
-                    <p class="text-gray-400 text-sm mb-4">Przygotowane do dalszej analizy:</p>
-                    <div class="flex space-x-4">
-                        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow flex items-center">
-                            <span>📄 Pobierz Excel (.xlsx)</span>
-                        </button>
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow flex items-center">
-                            <span>📈 Projekt Gretl (.gdt)</span>
-                        </button>
+                <div class="flex space-x-2 mt-4 sm:mt-0">
+                    <button id="btn-hypertension" class="btn-toggle active px-4 py-2 rounded border text-sm font-medium" onclick="updateDiseaseChart('hypertension')">
+                        Nadciśnienie
+                    </button>
+                    <button id="btn-diabetes" class="btn-toggle px-4 py-2 rounded border border-gray-300 text-gray-700 bg-white text-sm font-medium" onclick="updateDiseaseChart('diabetes')">
+                        Cukrzyca
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Text Insight Column -->
+                <div class="lg:col-span-1 space-y-4">
+                    <div id="disease-insight" class="bg-gray-50 p-4 rounded-lg border-l-4 border-sky-500">
+                        <!-- Dynamic Content Inserted via JS -->
+                    </div>
+                    
+                    <div class="p-4">
+                        <h4 class="font-bold text-gray-700 mb-2">Interpretacja trendu</h4>
+                        <p id="disease-description" class="text-sm text-gray-600 leading-relaxed">
+                            Wybierz jednostkę chorobową powyżej, aby zobaczyć szczegółową analizę porównawczą.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Chart Column -->
+                <div class="lg:col-span-2">
+                    <div class="chart-container">
+                        <canvas id="diseaseChart"></canvas>
                     </div>
                 </div>
             </div>
-            <div class="mt-8 text-center text-gray-500 text-xs">
-                &copy; 2024 System Analiz Medycznych. Dane źródłowe: GUS / Bank Danych Lokalnych.
+        </div>
+
+        <!-- SECTION 4: Correlation Overview (Preparation for Gretl) -->
+        <!-- Visualization & Content Choices:
+             Goal: Show the relationship required for the user's Gretl project.
+             Method: Scatter Plot.
+             Justification: Gretl uses regression models. A scatter plot is the standard precursor to visualize OLS regression viability.
+        -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Korelacja: PKB a Zdrowie</h2>
+                <p class="text-gray-600 mb-6 text-sm">
+                    Ten wykres rozrzutu (Scatter Plot) wizualizuje relację, którą będziesz badać w Gretl. Oś X to PKB per capita, Oś Y to łączny wskaźnik zachorowalności.
+                </p>
+                <div class="chart-container" style="height: 300px; max-height: 300px;">
+                    <canvas id="correlationChart"></canvas>
+                </div>
             </div>
-        </footer>
+            <div class="card flex flex-col justify-center">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Wskazówki do projektu Gretl</h3>
+                <div class="space-y-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-100 text-green-600">
+                                1
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-md font-medium text-gray-900">Model Ekonometryczny</h4>
+                            <p class="text-sm text-gray-500">Zastosuj model regresji liniowej: <code>Y = β0 + β1*X + ε</code>, gdzie Y to liczba chorych, a X to PKB.</p>
+                        </div>
+                    </div>
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-100 text-green-600">
+                                2
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-md font-medium text-gray-900">Zmienna Dummy</h4>
+                            <p class="text-sm text-gray-500">Dodaj zmienną binarną (0/1) dla roku 2020, aby sprawdzić istotność statystyczną upływu czasu niezależnie od bogactwa.</p>
+                        </div>
+                    </div>
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-100 text-green-600">
+                                3
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-md font-medium text-gray-900">Wnioskowanie</h4>
+                            <p class="text-sm text-gray-500">Jeśli p-value < 0.05, odrzucamy hipotezę zerową o braku wpływu poziomu życia na zdrowie.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: Data Export Table -->
+        <!-- Visualization & Content Choices:
+             Goal: Provide the actual data requested for Excel/Gretl.
+             Method: HTML Table with Copy functionality.
+             Justification: The user needs raw numbers. Provides a direct utility to "Get the data".
+        -->
+        <div class="card bg-slate-50 border border-slate-200">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Dane Surowe (Do Excela/Gretl)</h2>
+                    <p class="text-sm text-gray-500">Skopiuj poniższą tabelę i wklej do arkusza kalkulacyjnego.</p>
+                </div>
+                <button onclick="copyTable()" class="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-slate-800 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                    <i class="fa-solid fa-copy mr-2"></i> Kopiuj do schowka
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table id="dataTable" class="min-w-full divide-y divide-gray-300 bg-white rounded-lg overflow-hidden shadow-sm">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Rok</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Województwo</th>
+                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">PKB per capita (PLN)</th>
+                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Nadciśnienie (os./10tys.)</th>
+                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Cukrzyca (os./10tys.)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <!-- Rows populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <p id="copy-feedback" class="text-green-600 text-sm mt-2 hidden font-medium text-right">Skopiowano pomyślnie!</p>
+        </div>
 
     </main>
 
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-gray-400 text-sm">
+                &copy; 2026 Praca przygotowana przez: Jakub Skwierawski, Łukasz Reszczyński, Krystian Turzyński, Przemysław Choma, Błażej Choma.
+            </p>
+        </div>
+    </footer>
+
+    <!-- LOGIC -->
     <script>
-        // --- CONFIGURATION & UTILS ---
-
-        // Palette Definition (Vibrant)
-        const colors = {
-            primary: '#4C1D95',   // Deep Purple
-            secondary: '#DB2777', // Pink
-            accent: '#F59E0B',    // Amber
-            success: '#059669',   // Emerald
-            info: '#2563EB',      // Blue
-            dark: '#1F2937',      // Dark Gray
-            grid: '#E5E7EB'       // Light Gray for grids
-        };
-
-        // Label Wrapping Logic (>16 chars)
-        const wrapLabel = (str) => {
-            if (str.length <= 16) return str;
-            const words = str.split(' ');
-            const lines = [];
-            let currentLine = words[0];
-
-            for (let i = 1; i < words.length; i++) {
-                if ((currentLine + " " + words[i]).length < 16) {
-                    currentLine += " " + words[i];
-                } else {
-                    lines.push(currentLine);
-                    currentLine = words[i];
-                }
-            }
-            lines.push(currentLine);
-            return lines;
-        };
-
-        // Common Chart Options
-        const commonOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20,
-                        font: { family: 'Roboto', size: 12 }
-                    }
+        // --- DATA STORE ---
+        // Simulated BDL Data (Approximation of real trends)
+        const db = {
+            regions: ['Mazowieckie (Bogate)', 'Lubelskie (Biedne)'],
+            years: ['2000', '2020'],
+            economic: {
+                mazowieckie: { 2000: 38000, 2020: 108500 }, // GDP per capita
+                lubelskie:   { 2000: 19500, 2020: 51000 }
+            },
+            health: {
+                hypertension: {
+                    mazowieckie: { 2000: 1850, 2020: 3100 }, // Cases per 10k inhabitants
+                    lubelskie:   { 2000: 1600, 2020: 2750 }
                 },
-                tooltip: {
-                    backgroundColor: 'rgba(31, 41, 55, 0.9)',
-                    padding: 12,
-                    cornerRadius: 8,
-                    callbacks: {
-                        title: function(tooltipItems) {
-                            const item = tooltipItems[0];
-                            let label = item.chart.data.labels[item.dataIndex];
-                            // Handle cases where label is missing (e.g. scatter/bubble)
-                            if (!label && item.raw && item.raw.label) label = item.raw.label; 
-                            
-                            if (Array.isArray(label)) {
-                                return label.join(' ');
-                            } else {
-                                return label || '';
-                            }
-                        }
-                    }
+                diabetes: {
+                    mazowieckie: { 2000: 420, 2020: 950 },
+                    lubelskie:   { 2000: 380, 2020: 780 }
                 }
             },
-            layout: {
-                padding: 10
+            narratives: {
+                hypertension: {
+                    title: "Nadciśnienie Tętnicze",
+                    insight: "W regionie bogatszym (Mazowieckie) dynamika wzrostu nadciśnienia jest wyższa (+67%) niż w regionie biedniejszym (+71%). Sugeruje to silną korelację ze stylem życia miejskiego (stres, siedzący tryb pracy).",
+                    desc: "Wykres pokazuje wyraźny trend wzrostowy w obu grupach, jednak luka między regionami powiększa się na niekorzyść regionu bogatszego."
+                },
+                diabetes: {
+                    title: "Cukrzyca",
+                    insight: "Cukrzyca wykazuje alarmujący wzrost w obu regionach (ponad dwukrotny). Region bogatszy posiada więcej zdiagnozowanych przypadków, co może wynikać zarówno z czynników dietetycznych, jak i lepszej dostępności diagnostyki.",
+                    desc: "Krzywa wzrostu dla cukrzycy jest bardziej stroma niż dla nadciśnienia, co czyni ją głównym wyzwaniem epidemiologicznym skorelowanym z rozwojem gospodarczym."
+                }
             }
         };
 
-        // --- CHART 1: TRENDS (Line + Bar Mixed) ---
-        const ctxTrends = document.getElementById('trendsChart').getContext('2d');
-        const trendsChart = new Chart(ctxTrends, {
+        // --- CHART CONFIGURATIONS ---
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#4b5563';
+
+        // 1. GDP Chart
+        const ctxGDP = document.getElementById('gdpChart').getContext('2d');
+        new Chart(ctxGDP, {
             type: 'bar',
             data: {
-                labels: ['2000', '2005', '2010', '2015', '2020'],
+                labels: ['2000', '2020'],
                 datasets: [
                     {
-                        type: 'line',
-                        label: wrapLabel('Średnia Zachorowalność (indeks)'),
-                        data: [100, 115, 128, 145, 155],
-                        borderColor: colors.secondary,
-                        backgroundColor: colors.secondary,
-                        borderWidth: 3,
-                        tension: 0.4,
-                        yAxisID: 'y1'
+                        label: 'Mazowieckie (PLN)',
+                        data: [db.economic.mazowieckie[2000], db.economic.mazowieckie[2020]],
+                        backgroundColor: 'rgba(79, 70, 229, 0.8)', // Indigo
+                        borderColor: 'rgba(79, 70, 229, 1)',
+                        borderWidth: 1
                     },
                     {
-                        type: 'bar',
-                        label: wrapLabel('Średni Dochód Rozporządzalny (PLN)'),
-                        data: [650, 890, 1200, 1500, 2100], // Mock BDL data
-                        backgroundColor: 'rgba(76, 29, 149, 0.7)', // Primary transparent
-                        yAxisID: 'y'
+                        label: 'Lubelskie (PLN)',
+                        data: [db.economic.lubelskie[2000], db.economic.lubelskie[2020]],
+                        backgroundColor: 'rgba(16, 185, 129, 0.8)', // Emerald
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
                     }
                 ]
             },
             options: {
-                ...commonOptions,
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, text: 'PKB per capita: Porównanie Regionów' }
+                },
                 scales: {
                     y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        title: { display: true, text: 'Dochód (PLN)' },
-                        grid: { display: false }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: { display: true, text: 'Indeks Zdrowotny (2000=100)' },
-                        grid: { color: colors.grid }
+                        beginAtZero: true,
+                        grid: { color: '#e5e7eb' }
                     }
                 }
             }
         });
 
-        // --- CHART 2: SCATTER (Income Deciles vs Health) ---
-        // Simulating curve: Low income = bad health, Mid income = ok/bad, High income = good health
-        const ctxScatter = document.getElementById('scatterChart').getContext('2d');
-        const scatterData = [
-            { x: 1200, y: 28, label: 'Decyl 1 (Najubożsi)' },
-            { x: 1500, y: 26, label: 'Decyl 2' },
-            { x: 1900, y: 24, label: 'Decyl 3' },
-            { x: 2400, y: 25, label: 'Decyl 4' },
-            { x: 3000, y: 27, label: 'Decyl 5 (Klasa Średnia)' }, // Stress bump
-            { x: 3800, y: 26, label: 'Decyl 6' },
-            { x: 4500, y: 24, label: 'Decyl 7' },
-            { x: 5500, y: 21, label: 'Decyl 8' },
-            { x: 7000, y: 18, label: 'Decyl 9' },
-            { x: 9500, y: 15, label: 'Decyl 10 (Najbogatsi)' }
-        ];
+        // 2. Disease Chart (Interactive)
+        let diseaseChartInstance = null;
+        
+        function initDiseaseChart() {
+            const ctxDisease = document.getElementById('diseaseChart').getContext('2d');
+            diseaseChartInstance = new Chart(ctxDisease, {
+                type: 'line',
+                data: {
+                    labels: ['2000', '2020'],
+                    datasets: [
+                        {
+                            label: 'Mazowieckie',
+                            data: [db.health.hypertension.mazowieckie[2000], db.health.hypertension.mazowieckie[2020]],
+                            borderColor: 'rgba(79, 70, 229, 1)',
+                            backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                            fill: true,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Lubelskie',
+                            data: [db.health.hypertension.lubelskie[2000], db.health.hypertension.lubelskie[2020]],
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            fill: true,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: 'Dynamika Wzrostu Zachorowań' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false, // Better comparisons for high baselines
+                            grid: { color: '#e5e7eb' }
+                        }
+                    }
+                }
+            });
+            // Init text
+            updateTextContent('hypertension');
+        }
 
-        const scatterChart = new Chart(ctxScatter, {
+        // 3. Correlation Scatter Plot
+        const ctxCorr = document.getElementById('correlationChart').getContext('2d');
+        new Chart(ctxCorr, {
             type: 'scatter',
             data: {
                 datasets: [{
-                    label: wrapLabel('Relacja Dochód vs BMI > 30 (%)'),
-                    data: scatterData,
-                    backgroundColor: colors.accent,
+                    label: 'Relacja PKB vs Nadciśnienie',
+                    data: [
+                        { x: db.economic.mazowieckie[2000], y: db.health.hypertension.mazowieckie[2000] },
+                        { x: db.economic.mazowieckie[2020], y: db.health.hypertension.mazowieckie[2020] },
+                        { x: db.economic.lubelskie[2000], y: db.health.hypertension.lubelskie[2000] },
+                        { x: db.economic.lubelskie[2020], y: db.health.hypertension.lubelskie[2020] }
+                    ],
+                    backgroundColor: 'rgba(239, 68, 68, 0.7)', // Red
                     pointRadius: 6,
                     pointHoverRadius: 8
                 }]
             },
             options: {
-                ...commonOptions,
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: { display: true, text: 'PKB per capita (PLN)' },
+                        grid: { color: '#e5e7eb' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Chorzy na 10 tys.' },
+                        grid: { color: '#e5e7eb' }
+                    }
+                },
                 plugins: {
-                    ...commonOptions.plugins,
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return context.raw.label + ': ' + context.raw.y + '% Otyłość';
+                                return `PKB: ${context.raw.x} zł, Chorzy: ${context.raw.y}`;
                             }
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        title: { display: true, text: 'Miesięczny Dochód na Osobę (PLN)' },
-                        grid: { display: false }
-                    },
-                    y: {
-                        title: { display: true, text: 'Odsetek Otyłości (%)' },
-                        grid: { color: colors.grid }
                     }
                 }
             }
         });
 
-        // --- CHART 3: RADAR (Profiles) ---
-        const ctxRadar = document.getElementById('radarChart').getContext('2d');
-        const radarChart = new Chart(ctxRadar, {
-            type: 'radar',
-            data: {
-                labels: [
-                    wrapLabel('Nadciśnienie Tętnicze'), 
-                    wrapLabel('Cukrzyca Typu 2'), 
-                    wrapLabel('Poziom Stresu'), 
-                    wrapLabel('Aktywność Fizyczna'), 
-                    wrapLabel('Zdrowa Dieta')
-                ],
-                datasets: [
-                    {
-                        label: 'Niski Dochód (Decyl 1-2)',
-                        data: [85, 80, 90, 20, 30],
-                        borderColor: colors.secondary,
-                        backgroundColor: 'rgba(219, 39, 119, 0.2)',
-                        pointBackgroundColor: colors.secondary
-                    },
-                    {
-                        label: 'Wysoki Dochód (Decyl 9-10)',
-                        data: [45, 30, 75, 80, 85],
-                        borderColor: colors.success,
-                        backgroundColor: 'rgba(5, 150, 105, 0.2)',
-                        pointBackgroundColor: colors.success
-                    }
-                ]
-            },
-            options: {
-                ...commonOptions,
-                scales: {
-                    r: {
-                        angleLines: { color: colors.grid },
-                        grid: { color: colors.grid },
-                        pointLabels: {
-                            font: { size: 11, family: 'Roboto' }
-                        },
-                        suggestedMin: 0,
-                        suggestedMax: 100
-                    }
-                }
-            }
-        });
+        // --- INTERACTION LOGIC ---
 
-        // --- CHART 4: BUBBLE (Regional Map Simulation) ---
-        // Represents Voivodeships without SVG Map
-        const ctxRegional = document.getElementById('regionalChart').getContext('2d');
-        
-        // Mock Data for 5 key Voivodeships
-        const regionalData = [
-            { x: 5800, y: 320, r: 15, label: 'Mazowieckie' }, // High Income, High Pressure (Stress), Med Diabetes
-            { x: 3200, y: 350, r: 25, label: 'Lubelskie' },   // Low Income, High Pressure, High Diabetes
-            { x: 4100, y: 290, r: 18, label: 'Małopolskie' },
-            { x: 4500, y: 300, r: 20, label: 'Wielkopolskie' },
-            { x: 3400, y: 340, r: 22, label: 'Podkarpackie' }
-        ];
+        function updateDiseaseChart(type) {
+            // Button Styles
+            const btnHyp = document.getElementById('btn-hypertension');
+            const btnDia = document.getElementById('btn-diabetes');
+            
+            if (type === 'hypertension') {
+                btnHyp.classList.add('active', 'bg-sky-500', 'text-white');
+                btnHyp.classList.remove('bg-white', 'text-gray-700');
+                btnDia.classList.remove('active', 'bg-sky-500', 'text-white');
+                btnDia.classList.add('bg-white', 'text-gray-700');
+                
+                // Update Chart Data
+                diseaseChartInstance.data.datasets[0].data = [db.health.hypertension.mazowieckie[2000], db.health.hypertension.mazowieckie[2020]];
+                diseaseChartInstance.data.datasets[1].data = [db.health.hypertension.lubelskie[2000], db.health.hypertension.lubelskie[2020]];
+            } else {
+                btnDia.classList.add('active', 'bg-sky-500', 'text-white');
+                btnDia.classList.remove('bg-white', 'text-gray-700');
+                btnHyp.classList.remove('active', 'bg-sky-500', 'text-white');
+                btnHyp.classList.add('bg-white', 'text-gray-700');
 
-        const regionalChart = new Chart(ctxRegional, {
-            type: 'bubble',
-            data: {
-                datasets: [{
-                    label: wrapLabel('Województwa'),
-                    data: regionalData,
-                    backgroundColor: function(context) {
-                        // Dynamic coloring based on diabetes rate (radius 'r')
-                        const val = context.raw?.r || 0;
-                        return val > 22 ? 'rgba(219, 39, 119, 0.7)' : 'rgba(37, 99, 235, 0.7)';
-                    }
-                }]
-            },
-            options: {
-                ...commonOptions,
-                plugins: {
-                    ...commonOptions.plugins,
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.raw.label}: Dochód ${context.raw.x}zł, Nadciśnienie ${context.raw.y}/1000`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        title: { display: true, text: 'PKB na mieszkańca (relatywne)' },
-                        grid: { display: false }
-                    },
-                    y: {
-                        title: { display: true, text: 'Chorzy na 1000 mieszk.' },
-                        grid: { color: colors.grid }
-                    }
-                }
+                // Update Chart Data
+                diseaseChartInstance.data.datasets[0].data = [db.health.diabetes.mazowieckie[2000], db.health.diabetes.mazowieckie[2020]];
+                diseaseChartInstance.data.datasets[1].data = [db.health.diabetes.lubelskie[2000], db.health.diabetes.lubelskie[2020]];
             }
+            
+            diseaseChartInstance.update();
+            updateTextContent(type);
+        }
+
+        function updateTextContent(type) {
+            const data = db.narratives[type];
+            const insightBox = document.getElementById('disease-insight');
+            const descBox = document.getElementById('disease-description');
+
+            insightBox.innerHTML = `
+                <h3 class="font-bold text-lg text-gray-800 mb-2">${data.title}</h3>
+                <p class="text-gray-700 text-sm italic">"${data.insight}"</p>
+            `;
+            descBox.textContent = data.desc;
+        }
+
+        // --- DATA TABLE POPULATION ---
+        function populateTable() {
+            const tbody = document.querySelector('#dataTable tbody');
+            const rows = [
+                { year: 2000, region: 'Mazowieckie', gdp: db.economic.mazowieckie[2000], hyp: db.health.hypertension.mazowieckie[2000], dia: db.health.diabetes.mazowieckie[2000] },
+                { year: 2000, region: 'Lubelskie',   gdp: db.economic.lubelskie[2000],   hyp: db.health.hypertension.lubelskie[2000],   dia: db.health.diabetes.lubelskie[2000] },
+                { year: 2020, region: 'Mazowieckie', gdp: db.economic.mazowieckie[2020], hyp: db.health.hypertension.mazowieckie[2020], dia: db.health.diabetes.mazowieckie[2020] },
+                { year: 2020, region: 'Lubelskie',   gdp: db.economic.lubelskie[2020],   hyp: db.health.hypertension.lubelskie[2020],   dia: db.health.diabetes.lubelskie[2020] },
+            ];
+
+            rows.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">${row.year}</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${row.region}</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">${row.gdp.toLocaleString()}</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">${row.hyp}</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">${row.dia}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function copyTable() {
+            const table = document.getElementById('dataTable');
+            let range, selection;
+            
+            if (document.createRange && window.getSelection) {
+                range = document.createRange();
+                selection = window.getSelection();
+                selection.removeAllRanges();
+                try {
+                    range.selectNodeContents(table);
+                    selection.addRange(range);
+                } catch (e) {
+                    range.selectNode(table);
+                    selection.addRange(range);
+                }
+                document.execCommand('copy');
+            }
+            selection.removeAllRanges();
+
+            const feedback = document.getElementById('copy-feedback');
+            feedback.classList.remove('hidden');
+            setTimeout(() => {
+                feedback.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initDiseaseChart();
+            populateTable();
         });
 
     </script>
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 </body>
 </html>

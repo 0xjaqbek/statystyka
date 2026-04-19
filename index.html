@@ -336,273 +336,330 @@
 
     <!-- LOGIC -->
     <script>
-        // --- DATA STORE ---
-        // Simulated BDL Data (Approximation of real trends)
+        // --- DATA STORE (real data: WHO GHO + World Bank) ---
         const db = {
-            regions: ['Mazowieckie (Bogate)', 'Lubelskie (Biedne)'],
-            years: ['2000', '2020'],
-            economic: {
-                mazowieckie: { 2000: 38000, 2020: 108500 }, // GDP per capita
-                lubelskie:   { 2000: 19500, 2020: 51000 }
+            years: [2000, 2005, 2010, 2015, 2019],
+            countries: ['Luksemburg (Bogate)', 'Bułgaria (Biedne)'],
+            gdp: {
+                luxembourg: [48660, 80988, 110886, 105462, 112697],
+                bulgaria:   [1621,  3900,  6854,   7269,   10354]
             },
-            health: {
-                hypertension: {
-                    mazowieckie: { 2000: 1850, 2020: 3100 }, // Cases per 10k inhabitants
-                    lubelskie:   { 2000: 1600, 2020: 2750 }
-                },
-                diabetes: {
-                    mazowieckie: { 2000: 420, 2020: 950 },
-                    lubelskie:   { 2000: 380, 2020: 780 }
-                }
+            hypertension: {
+                luxembourg: [40.3, 39.5, 37.3, 33.6, 30.5],
+                bulgaria:   [44.8, 44.8, 45.2, 45.2, 45.2]
             },
-            narratives: {
-                hypertension: {
-                    title: "Nadciśnienie Tętnicze",
-                    insight: "W regionie bogatszym (Mazowieckie) dynamika wzrostu nadciśnienia jest wyższa (+67%) niż w regionie biedniejszym (+71%). Sugeruje to silną korelację ze stylem życia miejskiego (stres, siedzący tryb pracy).",
-                    desc: "Wykres pokazuje wyraźny trend wzrostowy w obu grupach, jednak luka między regionami powiększa się na niekorzyść regionu bogatszego."
-                },
-                diabetes: {
-                    title: "Cukrzyca",
-                    insight: "Cukrzyca wykazuje alarmujący wzrost w obu regionach (ponad dwukrotny). Region bogatszy posiada więcej zdiagnozowanych przypadków, co może wynikać zarówno z czynników dietetycznych, jak i lepszej dostępności diagnostyki.",
-                    desc: "Krzywa wzrostu dla cukrzycy jest bardziej stroma niż dla nadciśnienia, co czyni ją głównym wyzwaniem epidemiologicznym skorelowanym z rozwojem gospodarczym."
-                }
+            diabetes: {
+                luxembourg: [5.10, 5.36, 5.55, 5.61, 5.73],
+                bulgaria:   [5.92, 6.52, 7.42, 8.55, 9.69]
             }
         };
 
-        // --- CHART CONFIGURATIONS ---
+        // --- STATISTICAL UTILITIES ---
+        const stat = {
+            mean(arr) {
+                return arr.reduce((a, b) => a + b, 0) / arr.length;
+            },
+            sorted(arr) {
+                return [...arr].sort((a, b) => a - b);
+            },
+            median(arr) {
+                const s = this.sorted(arr);
+                const mid = Math.floor(s.length / 2);
+                return s.length % 2 === 0 ? (s[mid - 1] + s[mid]) / 2 : s[mid];
+            },
+            quartile(arr, q) {
+                const s = this.sorted(arr);
+                const pos = (s.length - 1) * q;
+                const base = Math.floor(pos);
+                const rest = pos - base;
+                return s[base + 1] !== undefined
+                    ? s[base] + rest * (s[base + 1] - s[base])
+                    : s[base];
+            },
+            variance(arr) {
+                const m = this.mean(arr);
+                return arr.reduce((sum, x) => sum + (x - m) ** 2, 0) / arr.length;
+            },
+            stdDev(arr) {
+                return Math.sqrt(this.variance(arr));
+            },
+            skewness(arr) {
+                const sd = this.stdDev(arr);
+                return sd === 0 ? 0 : 3 * (this.mean(arr) - this.median(arr)) / sd;
+            },
+            ols(xArr, yArr) {
+                const xMean = this.mean(xArr);
+                const yMean = this.mean(yArr);
+                const num = xArr.reduce((sum, xi, i) => sum + (xi - xMean) * (yArr[i] - yMean), 0);
+                const den = xArr.reduce((sum, xi) => sum + (xi - xMean) ** 2, 0);
+                const beta1 = den === 0 ? 0 : num / den;
+                const beta0 = yMean - beta1 * xMean;
+                return { beta0, beta1 };
+            },
+            rSquared(xArr, yArr) {
+                const { beta0, beta1 } = this.ols(xArr, yArr);
+                const yMean = this.mean(yArr);
+                const ssTot = yArr.reduce((sum, yi) => sum + (yi - yMean) ** 2, 0);
+                const ssRes = xArr.reduce((sum, xi, i) => {
+                    return sum + (yArr[i] - (beta0 + beta1 * xi)) ** 2;
+                }, 0);
+                return ssTot === 0 ? 1 : 1 - ssRes / ssTot;
+            },
+            geoMeanRate(arr) {
+                return Math.pow(arr[arr.length - 1] / arr[0], 1 / (arr.length - 1));
+            }
+        };
+
         Chart.defaults.font.family = "'Inter', sans-serif";
         Chart.defaults.color = '#4b5563';
 
-        // 1. GDP Chart
-        const ctxGDP = document.getElementById('gdpChart').getContext('2d');
-        new Chart(ctxGDP, {
-            type: 'bar',
-            data: {
-                labels: ['2000', '2020'],
-                datasets: [
-                    {
-                        label: 'Mazowieckie (PLN)',
-                        data: [db.economic.mazowieckie[2000], db.economic.mazowieckie[2020]],
-                        backgroundColor: 'rgba(79, 70, 229, 0.8)', // Indigo
-                        borderColor: 'rgba(79, 70, 229, 1)',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Lubelskie (PLN)',
-                        data: [db.economic.lubelskie[2000], db.economic.lubelskie[2020]],
-                        backgroundColor: 'rgba(16, 185, 129, 0.8)', // Emerald
-                        borderColor: 'rgba(16, 185, 129, 1)',
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    title: { display: true, text: 'PKB per capita: Porównanie Regionów' }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: '#e5e7eb' }
-                    }
-                }
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            initSection1();
+            initSection2();
+            initSection3();
+            populateTable();
         });
 
-        // 2. Disease Chart (Interactive)
-        let diseaseChartInstance = null;
-        
-        function initDiseaseChart() {
-            const ctxDisease = document.getElementById('diseaseChart').getContext('2d');
-            diseaseChartInstance = new Chart(ctxDisease, {
-                type: 'line',
+        function initSection1() {
+            const values = [...db.hypertension.luxembourg, ...db.hypertension.bulgaria];
+            const q1 = stat.quartile(values, 0.25);
+            const q3 = stat.quartile(values, 0.75);
+            const s = {
+                mean:     stat.mean(values),
+                median:   stat.median(values),
+                q1,
+                q3,
+                variance: stat.variance(values),
+                stdDev:   stat.stdDev(values),
+                iqr:      q3 - q1,
+                skewness: stat.skewness(values),
+                min:      Math.min(...values),
+                max:      Math.max(...values)
+            };
+
+            const tbody = document.querySelector('#s1-stats-table tbody');
+            [
+                ['Średnia (mean)',            s.mean.toFixed(2) + '%'],
+                ['Mediana',                   s.median.toFixed(2) + '%'],
+                ['Q1 (dolny kwartyl)',         s.q1.toFixed(2) + '%'],
+                ['Q3 (górny kwartyl)',         s.q3.toFixed(2) + '%'],
+                ['Wariancja',                 s.variance.toFixed(3)],
+                ['Odchylenie standardowe',    s.stdDev.toFixed(3)],
+                ['Odchylenie ćwiartkowe IQR', s.iqr.toFixed(2)],
+                ['Współczynnik skośności',    s.skewness.toFixed(4)],
+            ].forEach(([label, value]) => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-100';
+                tr.innerHTML = `<td class="py-2 pr-4 text-gray-600">${label}</td><td class="py-2 font-semibold text-gray-900 text-right">${value}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            const labels = db.years.map(y => `LUX ${y}`).concat(db.years.map(y => `BGR ${y}`));
+            new Chart(document.getElementById('s1BarChart'), {
+                type: 'bar',
                 data: {
-                    labels: ['2000', '2020'],
+                    labels,
+                    datasets: [{
+                        label: 'Nadciśnienie (%)',
+                        data: values,
+                        backgroundColor: labels.map((_, i) => i < 5 ? 'rgba(79,70,229,0.75)' : 'rgba(16,185,129,0.75)'),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: false, grid: { color: '#e5e7eb' }, title: { display: true, text: 'Prevalencja (%)' } },
+                        x: { ticks: { font: { size: 9 } } }
+                    }
+                }
+            });
+
+            new Chart(document.getElementById('s1BoxChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Nadciśnienie (%)'],
                     datasets: [
-                        {
-                            label: 'Mazowieckie',
-                            data: [db.health.hypertension.mazowieckie[2000], db.health.hypertension.mazowieckie[2020]],
-                            borderColor: 'rgba(79, 70, 229, 1)',
-                            backgroundColor: 'rgba(79, 70, 229, 0.2)',
-                            fill: true,
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Lubelskie',
-                            data: [db.health.hypertension.lubelskie[2000], db.health.hypertension.lubelskie[2020]],
-                            borderColor: 'rgba(16, 185, 129, 1)',
-                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                            fill: true,
-                            tension: 0.1
-                        }
+                        { label: `Min (${s.min})`, data: [[s.min, s.q1]], backgroundColor: 'rgba(148,163,184,0.3)', borderColor: '#64748b', borderWidth: 1, borderSkipped: false },
+                        { label: `Q1–Med (${s.q1.toFixed(1)}–${s.median.toFixed(1)})`, data: [[s.q1, s.median]], backgroundColor: 'rgba(14,165,233,0.5)', borderColor: '#0ea5e9', borderWidth: 1, borderSkipped: false },
+                        { label: `Med–Q3 (${s.median.toFixed(1)}–${s.q3.toFixed(1)})`, data: [[s.median, s.q3]], backgroundColor: 'rgba(14,165,233,0.85)', borderColor: '#0ea5e9', borderWidth: 1, borderSkipped: false },
+                        { label: `Max (${s.max})`, data: [[s.q3, s.max]], backgroundColor: 'rgba(148,163,184,0.3)', borderColor: '#64748b', borderWidth: 1, borderSkipped: false }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'bottom', labels: { font: { size: 10 } } },
+                        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw[0]}%–${ctx.raw[1]}%` } }
+                    },
+                    scales: {
+                        x: { grid: { color: '#e5e7eb' }, title: { display: true, text: 'Prevalencja (%)' } },
+                        y: { display: false }
+                    }
+                }
+            });
+        }
+
+        function initSection2() {
+            const yearLabels = db.years.map(String);
+
+            function makeLineChart(canvasId, dataset, yLabel) {
+                new Chart(document.getElementById(canvasId), {
+                    type: 'line',
+                    data: {
+                        labels: yearLabels,
+                        datasets: [
+                            { label: 'Luksemburg', data: dataset.luxembourg, borderColor: 'rgba(79,70,229,1)', backgroundColor: 'rgba(79,70,229,0.1)', fill: true, tension: 0.3, pointRadius: 4 },
+                            { label: 'Bułgaria',   data: dataset.bulgaria,   borderColor: 'rgba(16,185,129,1)', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3, pointRadius: 4 }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } },
+                        scales: { y: { beginAtZero: false, grid: { color: '#e5e7eb' }, title: { display: true, text: yLabel } } }
+                    }
+                });
+            }
+
+            makeLineChart('s2HypChart', db.hypertension, 'Prevalencja (%)');
+            makeLineChart('s2DiaChart', db.diabetes, 'Prevalencja (%)');
+
+            const allGdp = [...db.gdp.luxembourg, ...db.gdp.bulgaria];
+            const allHyp = [...db.hypertension.luxembourg, ...db.hypertension.bulgaria];
+            const allDia = [...db.diabetes.luxembourg, ...db.diabetes.bulgaria];
+
+            new Chart(document.getElementById('s2ScatterChart'), {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        { label: 'Nadciśnienie', data: allGdp.map((x, i) => ({ x, y: allHyp[i] })), backgroundColor: 'rgba(239,68,68,0.7)', pointRadius: 6, pointHoverRadius: 8 },
+                        { label: 'Cukrzyca',    data: allGdp.map((x, i) => ({ x, y: allDia[i] })), backgroundColor: 'rgba(14,165,233,0.7)', pointRadius: 6, pointHoverRadius: 8 }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        title: { display: true, text: 'Dynamika Wzrostu Zachorowań' }
-                    },
+                    plugins: { legend: { position: 'bottom' } },
                     scales: {
-                        y: {
-                            beginAtZero: false, // Better comparisons for high baselines
-                            grid: { color: '#e5e7eb' }
-                        }
+                        x: { title: { display: true, text: 'PKB per capita (USD)' }, grid: { color: '#e5e7eb' } },
+                        y: { title: { display: true, text: 'Prevalencja (%)' }, grid: { color: '#e5e7eb' } }
                     }
                 }
             });
-            // Init text
-            updateTextContent('hypertension');
-        }
 
-        // 3. Correlation Scatter Plot
-        const ctxCorr = document.getElementById('correlationChart').getContext('2d');
-        new Chart(ctxCorr, {
-            type: 'scatter',
-            data: {
-                datasets: [{
-                    label: 'Relacja PKB vs Nadciśnienie',
-                    data: [
-                        { x: db.economic.mazowieckie[2000], y: db.health.hypertension.mazowieckie[2000] },
-                        { x: db.economic.mazowieckie[2020], y: db.health.hypertension.mazowieckie[2020] },
-                        { x: db.economic.lubelskie[2000], y: db.health.hypertension.lubelskie[2000] },
-                        { x: db.economic.lubelskie[2020], y: db.health.hypertension.lubelskie[2020] }
-                    ],
-                    backgroundColor: 'rgba(239, 68, 68, 0.7)', // Red
-                    pointRadius: 6,
-                    pointHoverRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        type: 'linear',
-                        position: 'bottom',
-                        title: { display: true, text: 'PKB per capita (PLN)' },
-                        grid: { color: '#e5e7eb' }
-                    },
-                    y: {
-                        title: { display: true, text: 'Chorzy na 10 tys.' },
-                        grid: { color: '#e5e7eb' }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `PKB: ${context.raw.x} zł, Chorzy: ${context.raw.y}`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
+            const hypReg = stat.ols(allGdp, allHyp);
+            const hypR2  = stat.rSquared(allGdp, allHyp);
+            const diaReg = stat.ols(allGdp, allDia);
+            const diaR2  = stat.rSquared(allGdp, allDia);
 
-        // --- INTERACTION LOGIC ---
-
-        function updateDiseaseChart(type) {
-            // Button Styles
-            const btnHyp = document.getElementById('btn-hypertension');
-            const btnDia = document.getElementById('btn-diabetes');
-            
-            if (type === 'hypertension') {
-                btnHyp.classList.add('active', 'bg-sky-500', 'text-white');
-                btnHyp.classList.remove('bg-white', 'text-gray-700');
-                btnDia.classList.remove('active', 'bg-sky-500', 'text-white');
-                btnDia.classList.add('bg-white', 'text-gray-700');
-                
-                // Update Chart Data
-                diseaseChartInstance.data.datasets[0].data = [db.health.hypertension.mazowieckie[2000], db.health.hypertension.mazowieckie[2020]];
-                diseaseChartInstance.data.datasets[1].data = [db.health.hypertension.lubelskie[2000], db.health.hypertension.lubelskie[2020]];
-            } else {
-                btnDia.classList.add('active', 'bg-sky-500', 'text-white');
-                btnDia.classList.remove('bg-white', 'text-gray-700');
-                btnHyp.classList.remove('active', 'bg-sky-500', 'text-white');
-                btnHyp.classList.add('bg-white', 'text-gray-700');
-
-                // Update Chart Data
-                diseaseChartInstance.data.datasets[0].data = [db.health.diabetes.mazowieckie[2000], db.health.diabetes.mazowieckie[2020]];
-                diseaseChartInstance.data.datasets[1].data = [db.health.diabetes.lubelskie[2000], db.health.diabetes.lubelskie[2020]];
-            }
-            
-            diseaseChartInstance.update();
-            updateTextContent(type);
-        }
-
-        function updateTextContent(type) {
-            const data = db.narratives[type];
-            const insightBox = document.getElementById('disease-insight');
-            const descBox = document.getElementById('disease-description');
-
-            insightBox.innerHTML = `
-                <h3 class="font-bold text-lg text-gray-800 mb-2">${data.title}</h3>
-                <p class="text-gray-700 text-sm italic">"${data.insight}"</p>
+            document.getElementById('s2-regression-content').innerHTML = `
+                <div class="bg-white rounded p-3 border border-blue-100">
+                    <p class="font-semibold text-gray-800 mb-1">Nadciśnienie</p>
+                    <p class="font-mono text-sm">Ŷ = ${hypReg.beta0.toFixed(2)} + (${hypReg.beta1.toFixed(6)}) · PKB</p>
+                    <p class="mt-1 text-sm">R² = <strong>${hypR2.toFixed(4)}</strong> — model wyjaśnia ${(hypR2*100).toFixed(1)}% zmienności</p>
+                    <p class="text-xs text-gray-500 mt-1">β₀ = ${hypReg.beta0.toFixed(4)}, β₁ = ${hypReg.beta1.toFixed(6)}</p>
+                </div>
+                <div class="bg-white rounded p-3 border border-blue-100">
+                    <p class="font-semibold text-gray-800 mb-1">Cukrzyca</p>
+                    <p class="font-mono text-sm">Ŷ = ${diaReg.beta0.toFixed(2)} + ${diaReg.beta1.toFixed(6)} · PKB</p>
+                    <p class="mt-1 text-sm">R² = <strong>${diaR2.toFixed(4)}</strong> — model wyjaśnia ${(diaR2*100).toFixed(1)}% zmienności</p>
+                    <p class="text-xs text-gray-500 mt-1">β₀ = ${diaReg.beta0.toFixed(4)}, β₁ = ${diaReg.beta1.toFixed(6)}</p>
+                </div>
             `;
-            descBox.textContent = data.desc;
         }
 
-        // --- DATA TABLE POPULATION ---
+        function initSection3() {
+            const series = db.hypertension.luxembourg;
+            const timeIndex = [1, 2, 3, 4, 5];
+            const yearLabels = db.years.map(String);
+            const { beta0: a, beta1: b } = stat.ols(timeIndex, series);
+            const fitted = timeIndex.map(t => a + b * t);
+            const r2 = stat.rSquared(timeIndex, series);
+            const rate = stat.geoMeanRate(series);
+
+            document.getElementById('s3-stats').innerHTML = `
+                <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                    <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Model trendu liniowego</p>
+                    <p class="font-mono text-base text-gray-900">Ŷ = ${a.toFixed(2)} + (${b.toFixed(2)}) · t</p>
+                    <p class="text-xs text-gray-500 mt-1">t = 1 (rok 2000) … t = 5 (rok 2019)</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                    <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Współczynnik determinacji</p>
+                    <p class="font-semibold text-gray-900">R² = ${r2.toFixed(4)}</p>
+                    <p class="text-xs text-gray-500">Model wyjaśnia ${(r2*100).toFixed(1)}% zmienności szeregu</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                    <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Średnie tempo zmian (co 5 lat)</p>
+                    <p class="font-semibold text-gray-900">${(rate*100).toFixed(2)}%</p>
+                    <p class="text-xs text-gray-500">Średni spadek o ${((1-rate)*100).toFixed(2)}% co 5 lat</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                    <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Interpretacja parametrów</p>
+                    <p class="text-gray-700 text-sm">β₁ = ${b.toFixed(2)}: prevalencja zmienia się o ${b.toFixed(2)} p.p. na każde 5 lat</p>
+                    <p class="text-xs text-gray-500 mt-1 italic">Ocena istotności (p-value) — w programie Gretl</p>
+                </div>
+            `;
+
+            new Chart(document.getElementById('s3Chart'), {
+                type: 'line',
+                data: {
+                    labels: yearLabels,
+                    datasets: [
+                        { label: 'Wartości rzeczywiste', data: series, borderColor: 'rgba(79,70,229,1)', backgroundColor: 'rgba(79,70,229,0.1)', fill: true, tension: 0.3, pointRadius: 5 },
+                        { label: `Trend: Ŷ = ${a.toFixed(1)} + (${b.toFixed(1)})·t`, data: fitted, borderColor: 'rgba(239,68,68,0.85)', borderDash: [6,4], borderWidth: 2, backgroundColor: 'transparent', fill: false, pointRadius: 0, tension: 0 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Nadciśnienie — Luksemburg (2000–2019)' } },
+                    scales: { y: { beginAtZero: false, grid: { color: '#e5e7eb' }, title: { display: true, text: 'Prevalencja (%)' } } }
+                }
+            });
+        }
+
         function populateTable() {
             const tbody = document.querySelector('#dataTable tbody');
-            const rows = [
-                { year: 2000, region: 'Mazowieckie', gdp: db.economic.mazowieckie[2000], hyp: db.health.hypertension.mazowieckie[2000], dia: db.health.diabetes.mazowieckie[2000] },
-                { year: 2000, region: 'Lubelskie',   gdp: db.economic.lubelskie[2000],   hyp: db.health.hypertension.lubelskie[2000],   dia: db.health.diabetes.lubelskie[2000] },
-                { year: 2020, region: 'Mazowieckie', gdp: db.economic.mazowieckie[2020], hyp: db.health.hypertension.mazowieckie[2020], dia: db.health.diabetes.mazowieckie[2020] },
-                { year: 2020, region: 'Lubelskie',   gdp: db.economic.lubelskie[2020],   hyp: db.health.hypertension.lubelskie[2020],   dia: db.health.diabetes.lubelskie[2020] },
-            ];
-
-            rows.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">${row.year}</td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${row.region}</td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">${row.gdp.toLocaleString()}</td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">${row.hyp}</td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">${row.dia}</td>
-                `;
-                tbody.appendChild(tr);
+            db.years.forEach((year, i) => {
+                [
+                    { key: 'luxembourg', label: 'Luksemburg' },
+                    { key: 'bulgaria',   label: 'Bułgaria' }
+                ].forEach(({ key, label }) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">${year}</td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${label}</td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">${db.gdp[key][i].toLocaleString()}</td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">${db.hypertension[key][i].toFixed(1)}</td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">${db.diabetes[key][i].toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             });
         }
 
         function copyTable() {
             const table = document.getElementById('dataTable');
             let range, selection;
-            
             if (document.createRange && window.getSelection) {
                 range = document.createRange();
                 selection = window.getSelection();
                 selection.removeAllRanges();
-                try {
-                    range.selectNodeContents(table);
-                    selection.addRange(range);
-                } catch (e) {
-                    range.selectNode(table);
-                    selection.addRange(range);
-                }
+                try { range.selectNodeContents(table); selection.addRange(range); }
+                catch (e) { range.selectNode(table); selection.addRange(range); }
                 document.execCommand('copy');
             }
             selection.removeAllRanges();
-
             const feedback = document.getElementById('copy-feedback');
             feedback.classList.remove('hidden');
-            setTimeout(() => {
-                feedback.classList.add('hidden');
-            }, 3000);
+            setTimeout(() => feedback.classList.add('hidden'), 3000);
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            initDiseaseChart();
-            populateTable();
-        });
-
     </script>
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 </body>
 </html>

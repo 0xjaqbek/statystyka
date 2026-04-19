@@ -51,6 +51,25 @@
             <p class="mt-2 text-sm text-gray-400">Źródła: WHO Global Health Observatory &amp; Bank Światowy</p>
         </div>
 
+        <!-- Kontekst i metodologia -->
+        <div class="card mb-10">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Kontekst badawczy i metodologia</h2>
+            <div class="space-y-4 text-gray-700 leading-relaxed mb-6">
+                <p>
+                    Niniejsza analiza statystyczna dotyczy związku między poziomem zamożności a prevalencją chorób cywilizacyjnych w krajach Unii Europejskiej. Jako obiekty porównania wybrano dwa krańcowe przypadki: <strong>Luksemburg</strong> — kraj o najwyższym PKB per capita w UE (112 697 USD w 2019 r.) oraz <strong>Bułgarię</strong> — kraj o najniższym PKB per capita w UE (10 354 USD w 2019 r.) według danych Banku Światowego. Tak znacząca różnica ekonomiczna (ponad jedenastokrotna) pozwala na wyraźne uchwycenie potencjalnego wpływu czynnika ekonomicznego na stan zdrowia populacji.
+                </p>
+                <p>
+                    <strong>Zmienna niezależna</strong> to PKB per capita wyrażony w bieżących dolarach amerykańskich (Bank Światowy, wskaźnik NY.GDP.PCAP.CD). <strong>Zmienne zależne</strong> to prevalencja nadciśnienia tętniczego (WHO Global Health Observatory, wskaźnik NCD_HYP_PREVALENCE_A, standaryzowana wiekowo, dorośli 30–79 lat, obie płcie) oraz prevalencja cukrzycy (WHO GHO, wskaźnik NCD_DIABETES_PREVALENCE_AGESTD, standaryzowana wiekowo, obie płcie). Analiza obejmuje lata 2000–2019 z pięcioletnimi odstępami (n=10 obserwacji na zmienną). Do obliczeń statystycznych zastosowano metody opisowe (średnia, mediana, kwartyle, odchylenie standardowe, współczynnik skośności) oraz metodę najmniejszych kwadratów (OLS) do wyznaczenia modeli regresji liniowej i trendu.
+                </p>
+            </div>
+            <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                <h3 class="font-semibold text-blue-800 mb-2">Hipoteza badawcza:</h3>
+                <p class="italic text-blue-700">
+                    „Wyższy poziom zamożności (PKB per capita) jest ujemnie skorelowany z prevalencją nadciśnienia tętniczego i cukrzycy wśród dorosłych — kraje bogatsze wykazują niższe wskaźniki obu chorób cywilizacyjnych."
+                </p>
+            </div>
+        </div>
+
         <!-- SECTION 1 -->
         <section id="s1" class="card mb-10">
             <h2 class="text-2xl font-bold text-gray-800 mb-1 border-b pb-2">
@@ -186,6 +205,36 @@
                 </ul>
             </div>
         </section>
+
+        <!-- Wnioski i podsumowanie -->
+        <div class="card mt-4">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Wnioski i interpretacja wyników</h2>
+            <div class="space-y-4 text-gray-700 leading-relaxed mb-6">
+                <p>
+                    Analiza regresji liniowej (OLS) dla dwóch zmiennych potwierdziła istnienie istotnego, ujemnego związku między PKB per capita a prevalencją obu badanych chorób. Dla nadciśnienia tętniczego współczynnik determinacji <strong>R²&nbsp;=&nbsp;0,89</strong> wskazuje, że poziom zamożności wyjaśnia ok. 89% zmienności wskaźnika prevalencji w badanej próbie — jest to wysoka wartość świadcząca o silnej zależności liniowej. Ujemny znak współczynnika kierunkowego β₁ oznacza, że wzrostowi PKB per capita towarzyszy spadek prevalencji nadciśnienia. Analogicznie, dla cukrzycy <strong>R²&nbsp;=&nbsp;0,76</strong>, co potwierdza, że również w przypadku tej choroby poziom ekonomiczny kraju jest istotnym predyktorem jej rozpowszechnienia. Wyniki są zgodne z hipotezą badawczą i pozostają do formalnej weryfikacji statystycznej (ocena p-value) w programie Gretl.
+                </p>
+                <p>
+                    Analiza szeregu czasowego prevalencji nadciśnienia w Luksemburgu ujawniła wyraźny trend malejący, opisany modelem <strong>Ŷ&nbsp;=&nbsp;43,89&nbsp;+&nbsp;(−2,55)·t</strong> przy współczynniku determinacji <strong>R²&nbsp;=&nbsp;0,95</strong>. Średnie tempo zmian wyniosło ok. <strong>−6,7% co 5 lat</strong>, co świadczy o skutecznej profilaktyce i dostępności opieki medycznej w kraju wysokorozwiniętym gospodarczo. Kontrastuje to wyraźnie z sytuacją Bułgarii, gdzie prevalencja cukrzycy wzrosła z 5,92% w 2000 r. do 9,69% w 2019 r. — niemal dwukrotnie w ciągu dwóch dekad. Zestawienie tych tendencji sugeruje, że wyższy poziom PKB sprzyja nie tylko niższym wskaźnikom zachorowalności, lecz również skuteczniejszemu hamowaniu niekorzystnych trendów epidemiologicznych.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-sky-700">R² = 0,89</p>
+                    <p class="text-sm font-semibold text-gray-700 mt-1">Nadciśnienie vs PKB</p>
+                    <p class="text-xs text-gray-500 mt-1">PKB wyjaśnia 89% zmienności prevalencji</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-sky-700">R² = 0,76</p>
+                    <p class="text-sm font-semibold text-gray-700 mt-1">Cukrzyca vs PKB</p>
+                    <p class="text-xs text-gray-500 mt-1">PKB wyjaśnia 76% zmienności prevalencji</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-sky-700">−6,7% / 5 lat</p>
+                    <p class="text-sm font-semibold text-gray-700 mt-1">Trend — Luksemburg</p>
+                    <p class="text-xs text-gray-500 mt-1">Średnie tempo spadku prevalencji nadciśnienia</p>
+                </div>
+            </div>
+        </div>
 
     </main>
 

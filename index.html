@@ -3,60 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analiza: Choroby Cywilizacyjne a Status Ekonomiczny</title>
+    <title>Analiza: Choroby Cywilizacyjne w UE — Luksemburg vs Bułgaria</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Chosen Palette: Corporate Medical (Blue/Teal/Gray) - Professional, trustworthy, and clear for data differentiation. -->
-    <!-- Application Structure Plan:
-        1. Header: Context and Scope (2000 vs 2020).
-        2. Economic Baseline: Establishes the independent variable (Wealth).
-        3. Disease Analysis: The dependent variables (Hypertension/Diabetes) with interactive toggles.
-        4. Statistical Correlation: Visualizes the relationship for the Gretl project context.
-        5. Data Studio: Raw data table formatted for easy export to Excel/Gretl.
-        Rationale: This structure follows the logical flow of a statistical study: Hypothesis (Wealth affects Health) -> Data Viz -> Correlation -> Export for processing.
-    -->
-
     <style>
-        /* Chart Container Styling as per requirements */
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 50vh; 
-            max-height: 400px;
-            min-height: 300px;
-        }
-        
-        body {
-            background-color: #f3f4f6; /* Light gray background */
-            color: #1f2937; /* Dark gray text */
-        }
-
-        .card {
-            background-color: white;
-            border-radius: 0.75rem; /* rounded-xl */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .btn-toggle {
-            transition: all 0.3s ease;
-        }
-        
-        .btn-toggle.active {
-            background-color: #0ea5e9; /* sky-500 */
-            color: white;
-            border-color: #0ea5e9;
-        }
-
-        .btn-toggle:not(.active):hover {
-            background-color: #f3f4f6;
-        }
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin-left: auto; margin-right: auto; height: 50vh; max-height: 400px; min-height: 200px; }
+        body { background-color: #f3f4f6; color: #1f2937; }
+        .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); padding: 1.5rem; margin-bottom: 2rem; }
     </style>
 </head>
 <body class="font-sans antialiased">
@@ -76,252 +31,161 @@
         </div>
     </nav>
 
-    <!-- Main Content Container -->
+    <!-- Sticky jump nav -->
+    <nav class="fixed top-20 right-4 z-40 flex-col space-y-1 hidden sm:flex">
+        <a href="#s1" class="text-xs bg-white shadow border border-gray-200 rounded px-3 py-1.5 text-sky-700 hover:bg-sky-50 font-medium">§1 Jedna zmienna</a>
+        <a href="#s2" class="text-xs bg-white shadow border border-gray-200 rounded px-3 py-1.5 text-sky-700 hover:bg-sky-50 font-medium">§2 Dwie zmienne</a>
+        <a href="#s3" class="text-xs bg-white shadow border border-gray-200 rounded px-3 py-1.5 text-sky-700 hover:bg-sky-50 font-medium">§3 Szereg czasowy</a>
+    </nav>
+
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        <!-- Intro Section -->
+        <!-- Intro -->
         <div class="text-center mb-10">
             <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-                Wpływ Statusu Ekonomicznego na Choroby Cywilizacyjne
+                Wpływ Statusu Ekonomicznego na Choroby Cywilizacyjne w UE
             </h1>
             <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
-                Interaktywna analiza porównawcza najbogatszego (Mazowieckie) i najbiedniejszego (Lubelskie) województwa w kontekście nadciśnienia i cukrzycy. Przygotowanie danych do analizy w Gretl.
+                Porównanie Luksemburga (najbogatszy kraj UE) i Bułgarii (najbiedniejszy kraj UE) pod kątem prevalencji nadciśnienia i cukrzycy w latach 2000–2019.
             </p>
+            <p class="mt-2 text-sm text-gray-400">Źródła: WHO Global Health Observatory &amp; Bank Światowy</p>
         </div>
 
-        <!-- SECTION 1: Context & Methodology -->
-        <div class="card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Kontekst Badawczy</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+        <!-- SECTION 1 -->
+        <section id="s1" class="card mb-10">
+            <h2 class="text-2xl font-bold text-gray-800 mb-1 border-b pb-2">
+                <span class="text-sky-600 mr-2">§1</span>Analiza jednej zmiennej
+            </h2>
+            <p class="text-sm text-gray-500 mb-6">Zmienna: Nadciśnienie tętnicze — prevalencja (%) | Luksemburg + Bułgaria, 2000–2019 (n=10)</p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
-                    <p class="text-gray-600 mb-4">
-                        Celem tej sekcji jest zdefiniowanie zmiennych niezależnych (poziom życia/PKB) oraz zmiennych zależnych (częstość występowania chorób). Analiza opiera się na danych z Banku Danych Lokalnych (BDL), zestawiając rok 2000 (początek transformacji cyfrowej) z rokiem 2020.
-                    </p>
-                    <ul class="list-disc list-inside text-gray-600 space-y-2">
-                        <li><strong>Region A (Bogaty):</strong> Województwo Mazowieckie (Wysokie PKB, urbanizacja).</li>
-                        <li><strong>Region B (Biedny):</strong> Województwo Lubelskie (Niższe PKB, charakter rolniczy).</li>
-                        <li><strong>Choroby:</strong> Nadciśnienie tętnicze (I10-I15) oraz Cukrzyca (E10-E14).</li>
-                    </ul>
+                    <h3 class="font-semibold text-gray-700 mb-3">Parametry opisowe</h3>
+                    <table class="w-full text-sm border-collapse" id="s1-stats-table"><tbody></tbody></table>
                 </div>
-                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                    <h3 class="font-semibold text-blue-800 mb-2">Hipoteza do weryfikacji w Gretl:</h3>
-                    <p class="italic text-blue-700 text-sm">
-                        "Wzrost poziomu zamożności (PKB per capita) jest dodatnio skorelowany z zapadalnością na choroby cywilizacyjne, jednak dynamika wzrostu jest wyższa w regionach szybciej bogacących się (Mazowieckie)."
-                    </p>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Histogram (rozkład wartości)</p>
+                        <div class="chart-container" style="height:200px;max-height:200px;">
+                            <canvas id="s1BarChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Wykres pudełkowy</p>
+                        <div class="chart-container" style="height:130px;max-height:130px;">
+                            <canvas id="s1BoxChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- SECTION 2: Economic Disparity (Independent Variable) -->
-        <!-- Visualization & Content Choices: 
-             Goal: Visualize the wealth gap clearly.
-             Method: Grouped Bar Chart.
-             Justification: Allows immediate comparison of the magnitude of growth between 2000 and 2020 across two distinct regions.
-        -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <div class="lg:col-span-1">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Nierówności Ekonomiczne</h2>
-                <p class="text-gray-600 text-sm mb-4">
-                    Poniższy wykres prezentuje PKB per capita (w PLN) dla obu regionów. Zauważalna jest ogromna dysproporcja, która stanowi tło dla analizy zdrowotnej. Mazowieckie nie tylko startowało z wyższego pułapu, ale również zanotowało szybszy wzrost nominalny.
-                </p>
-                <div class="bg-white p-4 rounded shadow-sm border border-gray-100">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-semibold text-gray-500 uppercase">Mnożnik Wzrostu (2020/2000)</span>
-                    </div>
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-sm font-medium text-indigo-600">Mazowieckie</span>
-                        <span class="text-sm font-bold">x2.85</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
-                        <div class="bg-indigo-600 h-2 rounded-full" style="width: 95%"></div>
-                    </div>
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-sm font-medium text-emerald-600">Lubelskie</span>
-                        <span class="text-sm font-bold">x2.60</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-emerald-600 h-2 rounded-full" style="width: 80%"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="lg:col-span-2 card">
-                <div class="chart-container">
-                    <canvas id="gdpChart"></canvas>
-                </div>
-            </div>
-        </div>
+        <!-- SECTION 2 -->
+        <section id="s2" class="card mb-10">
+            <h2 class="text-2xl font-bold text-gray-800 mb-1 border-b pb-2">
+                <span class="text-sky-600 mr-2">§2</span>Analiza dwóch zmiennych
+            </h2>
+            <p class="text-sm text-gray-500 mb-6">Zależność między PKB per capita (USD) a prevalencją chorób</p>
 
-        <!-- SECTION 3: Disease Prevalence (Dependent Variables) -->
-        <!-- Visualization & Content Choices:
-             Goal: Compare disease rates.
-             Interaction: Toggle buttons to switch data sets (Hypertension vs Diabetes).
-             Method: Line/Bar Combination chart.
-             Justification: Shows the trend over time (simulated via 2 points) and compares absolute values clearly.
-        -->
-        <div class="card" id="disease-section">
-            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 border-b pb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Analiza Epidemiologiczna</h2>
-                    <p class="text-sm text-gray-500">Chorobowość (liczba przypadków na 10 tys. mieszkańców)</p>
-                </div>
-                <div class="flex space-x-2 mt-4 sm:mt-0">
-                    <button id="btn-hypertension" class="btn-toggle active px-4 py-2 rounded border text-sm font-medium" onclick="updateDiseaseChart('hypertension')">
-                        Nadciśnienie
-                    </button>
-                    <button id="btn-diabetes" class="btn-toggle px-4 py-2 rounded border border-gray-300 text-gray-700 bg-white text-sm font-medium" onclick="updateDiseaseChart('diabetes')">
-                        Cukrzyca
-                    </button>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Text Insight Column -->
-                <div class="lg:col-span-1 space-y-4">
-                    <div id="disease-insight" class="bg-gray-50 p-4 rounded-lg border-l-4 border-sky-500">
-                        <!-- Dynamic Content Inserted via JS -->
-                    </div>
-                    
-                    <div class="p-4">
-                        <h4 class="font-bold text-gray-700 mb-2">Interpretacja trendu</h4>
-                        <p id="disease-description" class="text-sm text-gray-600 leading-relaxed">
-                            Wybierz jednostkę chorobową powyżej, aby zobaczyć szczegółową analizę porównawczą.
-                        </p>
+                    <p class="text-sm font-semibold text-gray-700 mb-2 text-center">Nadciśnienie tętnicze (%)</p>
+                    <div class="chart-container" style="height:250px;max-height:250px;">
+                        <canvas id="s2HypChart"></canvas>
                     </div>
                 </div>
-
-                <!-- Chart Column -->
-                <div class="lg:col-span-2">
-                    <div class="chart-container">
-                        <canvas id="diseaseChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 4: Correlation Overview (Preparation for Gretl) -->
-        <!-- Visualization & Content Choices:
-             Goal: Show the relationship required for the user's Gretl project.
-             Method: Scatter Plot.
-             Justification: Gretl uses regression models. A scatter plot is the standard precursor to visualize OLS regression viability.
-        -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="card">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Korelacja: PKB a Zdrowie</h2>
-                <p class="text-gray-600 mb-6 text-sm">
-                    Ten wykres rozrzutu (Scatter Plot) wizualizuje relację, którą będziesz badać w Gretl. Oś X to PKB per capita, Oś Y to łączny wskaźnik zachorowalności.
-                </p>
-                <div class="chart-container" style="height: 300px; max-height: 300px;">
-                    <canvas id="correlationChart"></canvas>
-                </div>
-            </div>
-            <div class="card flex flex-col justify-center">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">Wskazówki do projektu Gretl</h3>
-                <div class="space-y-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-100 text-green-600">
-                                1
-                            </div>
-                        </div>
-                        <div class="ml-4">
-                            <h4 class="text-md font-medium text-gray-900">Model Ekonometryczny</h4>
-                            <p class="text-sm text-gray-500">Zastosuj model regresji liniowej: <code>Y = β0 + β1*X + ε</code>, gdzie Y to liczba chorych, a X to PKB.</p>
-                        </div>
-                    </div>
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-100 text-green-600">
-                                2
-                            </div>
-                        </div>
-                        <div class="ml-4">
-                            <h4 class="text-md font-medium text-gray-900">Zmienna Dummy</h4>
-                            <p class="text-sm text-gray-500">Dodaj zmienną binarną (0/1) dla roku 2020, aby sprawdzić istotność statystyczną upływu czasu niezależnie od bogactwa.</p>
-                        </div>
-                    </div>
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-100 text-green-600">
-                                3
-                            </div>
-                        </div>
-                        <div class="ml-4">
-                            <h4 class="text-md font-medium text-gray-900">Wnioskowanie</h4>
-                            <p class="text-sm text-gray-500">Jeśli p-value < 0.05, odrzucamy hipotezę zerową o braku wpływu poziomu życia na zdrowie.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 5: Data Export Table -->
-        <!-- Visualization & Content Choices:
-             Goal: Provide the actual data requested for Excel/Gretl.
-             Method: HTML Table with Copy functionality.
-             Justification: The user needs raw numbers. Provides a direct utility to "Get the data".
-        -->
-        <div class="card bg-slate-50 border border-slate-200">
-            <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Dane Surowe (Do Excela/Gretl)</h2>
-                    <p class="text-sm text-gray-500">Skopiuj poniższą tabelę i wklej do arkusza kalkulacyjnego.</p>
+                    <p class="text-sm font-semibold text-gray-700 mb-2 text-center">Cukrzyca (%)</p>
+                    <div class="chart-container" style="height:250px;max-height:250px;">
+                        <canvas id="s2DiaChart"></canvas>
+                    </div>
                 </div>
-                <button onclick="copyTable()" class="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-slate-800 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+            </div>
+
+            <div class="mb-8">
+                <h3 class="font-semibold text-gray-700 mb-2">Korelogram: PKB per capita vs prevalencja chorób</h3>
+                <div class="chart-container" style="height:300px;max-height:300px;">
+                    <canvas id="s2ScatterChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-100 rounded-lg p-5">
+                <h3 class="font-bold text-blue-800 mb-3">Model regresji liniowej: Ŷ = β₀ + β₁ · PKB</h3>
+                <div id="s2-regression-content" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm"></div>
+                <p class="text-xs text-blue-600 mt-3 italic">* Ocena istotności parametrów (p-value) wykonywana w programie Gretl na pełnym zbiorze danych.</p>
+            </div>
+        </section>
+
+        <!-- SECTION 3 -->
+        <section id="s3" class="card mb-10">
+            <h2 class="text-2xl font-bold text-gray-800 mb-1 border-b pb-2">
+                <span class="text-sky-600 mr-2">§3</span>Analiza szeregu czasowego
+            </h2>
+            <p class="text-sm text-gray-500 mb-6">Zmienna: Nadciśnienie tętnicze — Luksemburg, 2000–2019</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-3">Parametry dynamiki</h3>
+                    <div id="s3-stats" class="space-y-3 text-sm"></div>
+                </div>
+                <div>
+                    <div class="chart-container" style="height:280px;max-height:280px;">
+                        <canvas id="s3Chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="font-semibold text-gray-700 mb-2 mt-4">Dane surowe (do Excela/Gretl)</h3>
+            <div class="flex justify-end mb-2">
+                <button onclick="copyTable()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-slate-800 hover:bg-slate-900">
                     <i class="fa-solid fa-copy mr-2"></i> Kopiuj do schowka
                 </button>
             </div>
-            
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto mb-4">
                 <table id="dataTable" class="min-w-full divide-y divide-gray-300 bg-white rounded-lg overflow-hidden shadow-sm">
                     <thead class="bg-gray-100">
                         <tr>
-                            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Rok</th>
-                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Województwo</th>
-                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">PKB per capita (PLN)</th>
-                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Nadciśnienie (os./10tys.)</th>
-                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Cukrzyca (os./10tys.)</th>
+                            <th class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Rok</th>
+                            <th class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Kraj</th>
+                            <th class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">PKB per capita (USD)</th>
+                            <th class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Nadciśnienie (%)</th>
+                            <th class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Cukrzyca (%)</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        <!-- Rows populated by JS -->
-                    </tbody>
+                    <tbody class="divide-y divide-gray-200"></tbody>
                 </table>
             </div>
             <p id="copy-feedback" class="text-green-600 text-sm mt-2 hidden font-medium text-right">Skopiowano pomyślnie!</p>
-        </div>
 
-        <!-- SECTION 6: Data Sources -->
-        <div class="card mt-8 bg-sky-50 border border-sky-100">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b border-sky-200 pb-2">
-                <i class="fa-solid fa-link text-sky-600 mr-2"></i>Źródła Danych (GUS - Bank Danych Lokalnych)
-            </h2>
-            <p class="text-sm text-gray-600 mb-4">
-                Dane na potrzeby niniejszej analizy statystycznej można zweryfikować i pobrać z oficjalnego portalu Głównego Urzędu Statystycznego. Poniżej znajdują się bezpośrednie odnośniki do odpowiednich dziedzin w BDL:
-            </p>
-            <ul class="space-y-3 text-sm text-gray-700">
-                <li class="flex items-start">
-                    <i class="fa-solid fa-database text-gray-400 mt-1 mr-3"></i>
-                    <div>
-                        <strong>Portal Główny BDL:</strong><br>
-                        <a href="https://bdl.stat.gov.pl/bdl/start" target="_blank" rel="noopener noreferrer" class="text-sky-600 hover:text-sky-800 underline font-medium">https://bdl.stat.gov.pl/bdl/start</a>
-                    </div>
-                </li>
-                <li class="flex items-start">
-                    <i class="fa-solid fa-coins text-gray-400 mt-1 mr-3"></i>
-                    <div>
-                        <strong>Zmienna Niezależna (PKB per capita):</strong><br>
-                        <span class="text-gray-500 text-xs block mb-1">Ścieżka: Rachunki regionalne ➔ Produkt krajowy brutto (PKB) ➔ PKB na 1 mieszkańca</span>
-                    </div>
-                </li>
-                <li class="flex items-start">
-                    <i class="fa-solid fa-heart-pulse text-gray-400 mt-1 mr-3"></i>
-                    <div>
-                        <strong>Zmienna Zależna (Zachorowalność / Choroby Cywilizacyjne):</strong><br>
-                        <span class="text-gray-500 text-xs block mb-1">Ścieżka: Ochrona zdrowia i opieka społeczna ➔ Stan zdrowia ludności / Zachorowania na wybrane choroby</span>
-                    </div>
-                </li>
-            </ul>
-        </div>
+            <div class="bg-sky-50 border border-sky-100 rounded-lg p-4 mt-6">
+                <h3 class="font-bold text-gray-800 mb-3"><i class="fa-solid fa-link text-sky-600 mr-2"></i>Źródła Danych</h3>
+                <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start">
+                        <i class="fa-solid fa-heart-pulse text-gray-400 mt-1 mr-3"></i>
+                        <div>
+                            <strong>WHO Global Health Observatory — Nadciśnienie:</strong><br>
+                            Wskaźnik: NCD_HYP_PREVALENCE_A (age-standardized, adults 30–79, both sexes)<br>
+                            <a href="https://www.who.int/data/gho/data/indicators/indicator-details/GHO/prevalence-of-hypertension-among-adults-aged-30-79-years" target="_blank" rel="noopener noreferrer" class="text-sky-600 hover:text-sky-800 underline">who.int/data/gho</a>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa-solid fa-syringe text-gray-400 mt-1 mr-3"></i>
+                        <div>
+                            <strong>WHO Global Health Observatory — Cukrzyca:</strong><br>
+                            Wskaźnik: NCD_DIABETES_PREVALENCE_AGESTD (age-standardized, both sexes)<br>
+                            <a href="https://www.who.int/data/gho/data/indicators/indicator-details/GHO/prevalence-of-diabetes-age-standardized" target="_blank" rel="noopener noreferrer" class="text-sky-600 hover:text-sky-800 underline">who.int/data/gho</a>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa-solid fa-coins text-gray-400 mt-1 mr-3"></i>
+                        <div>
+                            <strong>Bank Światowy — PKB per capita:</strong><br>
+                            Wskaźnik: NY.GDP.PCAP.CD (current USD)<br>
+                            <a href="https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=LU-BG" target="_blank" rel="noopener noreferrer" class="text-sky-600 hover:text-sky-800 underline">data.worldbank.org</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
 
     </main>
 

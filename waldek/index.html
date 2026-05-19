@@ -8,76 +8,203 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .chart-container { position: relative; width: 100%; max-width: 800px; margin-left: auto; margin-right: auto; height: 50vh; max-height: 400px; min-height: 200px; }
-        body { background-color: #f3f4f6; color: #1f2937; }
-        .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); padding: 1.5rem; margin-bottom: 2rem; }
+        :root {
+            --ink: #10201d;
+            --muted: #66736f;
+            --paper: #fbfaf6;
+            --line: #d9e1dc;
+            --teal: #0f766e;
+            --mint: #d8f3ea;
+            --indigo: #3730a3;
+            --amber: #b45309;
+        }
+
+        body {
+            background:
+                linear-gradient(180deg, #eaf4ef 0, #fbfaf6 360px, #f5f2ea 100%);
+            color: var(--ink);
+        }
+
+        .topbar {
+            background: rgba(251, 250, 246, 0.92);
+            border-bottom: 1px solid rgba(16, 32, 29, 0.08);
+            backdrop-filter: blur(14px);
+        }
+
+        .hero {
+            background:
+                linear-gradient(135deg, rgba(15, 118, 110, 0.96), rgba(30, 64, 175, 0.90)),
+                radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.35), transparent 36%);
+            color: white;
+            border-radius: 0;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.86);
+            border: 1px solid var(--line);
+            box-shadow: 0 16px 36px rgba(16, 32, 29, 0.08);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--ink);
+        }
+
+        .section-mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.35rem;
+            height: 2.35rem;
+            border-radius: 999px;
+            background: var(--mint);
+            color: var(--teal);
+            font-weight: 800;
+            font-size: 0.9rem;
+            flex: 0 0 auto;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            min-height: 230px;
+        }
+
+        .mini-chart {
+            min-height: 160px;
+        }
+
+        .metric {
+            background: #ffffff;
+            border: 1px solid #dbe7e1;
+            border-left: 4px solid var(--teal);
+        }
+
+        .source-link {
+            color: #0f766e;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        @media (max-width: 640px) {
+            .hero h1 {
+                font-size: 2rem;
+                line-height: 1.1;
+            }
+
+            .chart-container {
+                min-height: 260px;
+            }
+        }
     </style>
 </head>
 <body class="font-sans antialiased">
-    <nav class="bg-white shadow-sm sticky top-0 z-50">
+    <nav class="topbar sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <i class="fa-solid fa-syringe text-sky-600 text-2xl mr-3"></i>
-                    <span class="font-bold text-xl tracking-tight text-slate-800">Statystyka PANS</span>
+            <div class="h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-teal-700 text-white">
+                        <i class="fa-solid fa-virus-covid-slash"></i>
+                    </span>
+                    <div>
+                        <p class="font-black tracking-tight text-slate-950">Statystyka medyczna</p>
+                        <p class="text-xs text-slate-500">Projekt porównawczy 2011-2023</p>
+                    </div>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm text-gray-500 hidden sm:block">Ratownik Medyczny mgr</span>
+                <div class="hidden sm:flex items-center gap-2 text-sm text-slate-600">
+                    <i class="fa-solid fa-database text-amber-700"></i>
+                    <span>Eurostat: hlth_ps_immu + hlth_cd_asdr2</span>
                 </div>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="text-center mb-10">
-            <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-                Szczepienia przeciw grypie a zgony na grypę
-            </h1>
-            <p class="mt-3 max-w-3xl mx-auto text-xl text-gray-500 sm:mt-4">
-                Porównanie Luksemburga i Francji pod kątem odsetka osób 65+ zaszczepionych przeciw grypie oraz standaryzowanego współczynnika zgonów z powodu grypy w latach 2011-2023.
-            </p>
-            <p class="mt-2 text-sm text-gray-400">Źródło danych: Eurostat</p>
-        </div>
-
-        <div class="card mb-10">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Kontekst badawczy i metodologia</h2>
-            <div class="space-y-4 text-gray-700 leading-relaxed mb-6">
-                <p>
-                    Niniejsza analiza dotyczy zależności między poziomem szczepień przeciw grypie wśród osób w wieku 65 lat i więcej a umieralnością z powodu grypy. Porównano <strong>Luksemburg</strong> oraz <strong>Francję</strong>. Kraje różnią się wielkością populacji, organizacją ochrony zdrowia i poziomem korzystania z profilaktyki, dlatego stanowią dobry materiał do porównania.
-                </p>
-                <p>
-                    <strong>Zmienna niezależna</strong> to odsetek osób w wieku 65+ zaszczepionych przeciw grypie, wyrażony w procentach (Eurostat, zbiór <strong>hlth_ps_immu</strong>). <strong>Zmienna zależna</strong> to standaryzowany współczynnik zgonów z powodu grypy, ICD-10: J09-J11, dla osób w wieku 65+ na 100 000 mieszkańców tej grupy wieku (Eurostat, zbiór <strong>hlth_cd_asdr2</strong>). Analiza obejmuje lata <strong>2011-2023</strong>. Dla obu krajów dostępny jest komplet obserwacji w całym badanym przedziale czasowym.
-                </p>
-            </div>
-            <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
-                <h3 class="font-semibold text-blue-800 mb-2">Hipoteza badawcza:</h3>
-                <p class="italic text-blue-700">
-                    „Wyższy odsetek szczepień przeciw grypie wśród osób 65+ jest ujemnie skorelowany ze współczynnikiem zgonów z powodu grypy w tej samej grupie wieku.”
-                </p>
-            </div>
-        </div>
-
-        <section id="s1" class="card mb-10">
-            <h2 class="text-2xl font-bold text-gray-800 mb-1 border-b pb-2">
-                <span class="text-sky-600 mr-2">§1</span>Analiza jednej zmiennej
-            </h2>
-            <p class="text-sm text-gray-500 mb-6">Zmienna: szczepienia przeciw grypie osób 65+ (%) | Luksemburg + Francja, 2011-2023</p>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <header class="hero">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+            <div class="grid grid-cols-1 lg:grid-cols-[1.4fr_0.8fr] gap-10 items-end">
                 <div>
-                    <h3 class="font-semibold text-gray-700 mb-3">Parametry opisowe</h3>
-                    <table class="w-full text-sm border-collapse" id="s1-stats-table"><tbody></tbody></table>
-                    <p class="text-xs text-gray-500 mt-3">Obliczenia wykonano na kompletnym zbiorze obserwacji dla lat 2011-2023.</p>
+                    <p class="uppercase tracking-[0.22em] text-xs font-bold text-emerald-100 mb-4">Analiza korelacji</p>
+                    <h1 class="text-4xl sm:text-5xl font-black tracking-tight max-w-4xl">
+                        Szczepienia przeciw grypie a zgony na grypę
+                    </h1>
+                    <p class="mt-5 max-w-3xl text-lg text-emerald-50 leading-relaxed">
+                        Porównanie Luksemburga i Francji pod kątem odsetka osób 65+ zaszczepionych przeciw grypie oraz standaryzowanego współczynnika zgonów z powodu grypy.
+                    </p>
                 </div>
-                <div class="space-y-6">
+                <div class="bg-white/12 border border-white/20 p-5">
+                    <p class="text-sm uppercase tracking-[0.16em] text-emerald-100 font-bold">Zakres badania</p>
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <div>
+                            <p class="text-3xl font-black">13</p>
+                            <p class="text-sm text-emerald-50">lat obserwacji</p>
+                        </div>
+                        <div>
+                            <p class="text-3xl font-black">2</p>
+                            <p class="text-sm text-emerald-50">kraje</p>
+                        </div>
+                        <div>
+                            <p class="text-3xl font-black">65+</p>
+                            <p class="text-sm text-emerald-50">grupa wieku</p>
+                        </div>
+                        <div>
+                            <p class="text-3xl font-black">26</p>
+                            <p class="text-sm text-emerald-50">par danych</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <section class="panel p-6 lg:p-8 mb-8">
+            <div class="grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-8">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-950">Kontekst i metodologia</h2>
+                    <p class="mt-3 text-slate-600 leading-relaxed">
+                        Analiza sprawdza, czy wyższy poziom szczepień przeciw grypie wśród osób starszych wiąże się z niższym współczynnikiem zgonów na grypę.
+                    </p>
+                </div>
+                <div class="space-y-4 text-slate-700 leading-relaxed">
+                    <p>
+                        <strong>Zmienna niezależna</strong> to odsetek osób w wieku 65+ zaszczepionych przeciw grypie, wyrażony w procentach. <strong>Zmienna zależna</strong> to standaryzowany współczynnik zgonów z powodu grypy, ICD-10: J09-J11, dla osób w wieku 65+ na 100 000 mieszkańców.
+                    </p>
+                    <p>
+                        Źródłem obu zmiennych jest Eurostat. Dla Luksemburga i Francji dostępny jest komplet obserwacji w latach <strong>2011-2023</strong>, dlatego obliczenia nie wymagają uzupełniania braków danych.
+                    </p>
+                    <div class="bg-emerald-50 border border-emerald-200 p-4">
+                        <p class="font-bold text-emerald-900">Hipoteza badawcza</p>
+                        <p class="mt-1 italic text-emerald-800">„Wyższy odsetek szczepień przeciw grypie wśród osób 65+ jest ujemnie skorelowany ze współczynnikiem zgonów z powodu grypy w tej samej grupie wieku.”</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="s1" class="panel p-6 lg:p-8 mb-8">
+            <div class="section-title mb-2">
+                <span class="section-mark">01</span>
+                <h2 class="text-2xl font-black">Analiza jednej zmiennej</h2>
+            </div>
+            <p class="text-sm text-slate-500 mb-7">Zmienna: szczepienia przeciw grypie osób 65+ (%) | Luksemburg + Francja, 2011-2023</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-8">
+                <div>
+                    <h3 class="font-bold text-slate-800 mb-3">Parametry opisowe</h3>
+                    <table class="w-full text-sm border-collapse" id="s1-stats-table"><tbody></tbody></table>
+                    <p class="text-xs text-slate-500 mt-3">Obliczenia wykonano na kompletnym zbiorze obserwacji dla lat 2011-2023.</p>
+                </div>
+                <div class="grid grid-cols-1 gap-6">
                     <div>
-                        <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Wykres słupkowy wartości</p>
-                        <div class="chart-container" style="height:210px;max-height:210px;">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Wykres słupkowy wartości</p>
+                        <div class="chart-container">
                             <canvas id="s1BarChart"></canvas>
                         </div>
                     </div>
                     <div>
-                        <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Wykres pudełkowy</p>
-                        <div class="chart-container" style="height:130px;max-height:130px;">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Wykres pudełkowy</p>
+                        <div class="chart-container mini-chart">
                             <canvas id="s1BoxChart"></canvas>
                         </div>
                     </div>
@@ -85,118 +212,129 @@
             </div>
         </section>
 
-        <section id="s2" class="card mb-10">
-            <h2 class="text-2xl font-bold text-gray-800 mb-1 border-b pb-2">
-                <span class="text-sky-600 mr-2">§2</span>Analiza dwóch zmiennych
-            </h2>
-            <p class="text-sm text-gray-500 mb-6">Zależność między szczepieniami przeciw grypie osób 65+ a zgonami na grypę w wieku 65+</p>
+        <section id="s2" class="panel p-6 lg:p-8 mb-8">
+            <div class="section-title mb-2">
+                <span class="section-mark">02</span>
+                <h2 class="text-2xl font-black">Analiza dwóch zmiennych</h2>
+            </div>
+            <p class="text-sm text-slate-500 mb-7">Zależność między szczepieniami przeciw grypie osób 65+ a zgonami na grypę w wieku 65+</p>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-7 mb-8">
                 <div>
-                    <p class="text-sm font-semibold text-gray-700 mb-2 text-center">Szczepienia przeciw grypie 65+ (%)</p>
-                    <div class="chart-container" style="height:250px;max-height:250px;">
+                    <p class="text-sm font-bold text-slate-700 mb-2">Szczepienia przeciw grypie 65+ (%)</p>
+                    <div class="chart-container">
                         <canvas id="s2VaccChart"></canvas>
                     </div>
                 </div>
                 <div>
-                    <p class="text-sm font-semibold text-gray-700 mb-2 text-center">Zgony na grypę 65+ (na 100 000)</p>
-                    <div class="chart-container" style="height:250px;max-height:250px;">
+                    <p class="text-sm font-bold text-slate-700 mb-2">Zgony na grypę 65+ (na 100 000)</p>
+                    <div class="chart-container">
                         <canvas id="s2DeathChart"></canvas>
                     </div>
                 </div>
             </div>
 
             <div class="mb-8">
-                <h3 class="font-semibold text-gray-700 mb-2">Korelogram: szczepienia vs zgony na grypę</h3>
-                <div class="chart-container" style="height:300px;max-height:300px;">
+                <p class="text-sm font-bold text-slate-700 mb-2">Korelogram: szczepienia vs zgony na grypę</p>
+                <div class="chart-container" style="min-height: 320px;">
                     <canvas id="s2ScatterChart"></canvas>
                 </div>
             </div>
 
-            <div class="bg-blue-50 border border-blue-100 rounded-lg p-5">
-                <h3 class="font-bold text-blue-800 mb-3">Model regresji liniowej: ŷ = β₀ + β₁ · szczepienia</h3>
-                <div id="s2-regression-content" class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm"></div>
-                <p class="text-xs text-blue-600 mt-3 italic">* Ocena istotności parametrów (p-value) może zostać wykonana w programie Gretl na tych samych danych.</p>
+            <div class="bg-teal-900 text-white p-5">
+                <h3 class="font-black mb-3">Model regresji liniowej: ŷ = β₀ + β₁ · szczepienia</h3>
+                <div id="s2-regression-content" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm"></div>
+                <p class="text-xs text-emerald-100 mt-3 italic">* Ocena istotności parametrów (p-value) może zostać wykonana w programie Gretl na tych samych danych.</p>
             </div>
         </section>
 
-        <section id="s3" class="card mb-10">
-            <h2 class="text-2xl font-bold text-gray-800 mb-1 border-b pb-2">
-                <span class="text-sky-600 mr-2">§3</span>Analiza szeregu czasowego
-            </h2>
-            <p class="text-sm text-gray-500 mb-6">Zmienna: zgony na grypę w wieku 65+ | Francja, 2011-2023</p>
+        <section id="s3" class="panel p-6 lg:p-8 mb-8">
+            <div class="section-title mb-2">
+                <span class="section-mark">03</span>
+                <h2 class="text-2xl font-black">Analiza szeregu czasowego</h2>
+            </div>
+            <p class="text-sm text-slate-500 mb-7">Zmienna: zgony na grypę w wieku 65+ | Francja, 2011-2023</p>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="grid grid-cols-1 lg:grid-cols-[0.75fr_1.25fr] gap-8 mb-8">
                 <div>
-                    <h3 class="font-semibold text-gray-700 mb-3">Parametry dynamiki</h3>
+                    <h3 class="font-bold text-slate-800 mb-3">Parametry dynamiki</h3>
                     <div id="s3-stats" class="space-y-3 text-sm"></div>
                 </div>
                 <div>
-                    <div class="chart-container" style="height:280px;max-height:280px;">
+                    <div class="chart-container" style="min-height: 320px;">
                         <canvas id="s3Chart"></canvas>
                     </div>
                 </div>
             </div>
-
-            <h3 class="font-semibold text-gray-700 mb-2 mt-4">Dane surowe (do Excela/Gretl)</h3>
-            <div class="flex justify-end mb-2">
-                <button onclick="copyTable()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-slate-800 hover:bg-slate-900">
-                    <i class="fa-solid fa-copy mr-2"></i> Kopiuj do schowka
-                </button>
-            </div>
-            <div class="overflow-x-auto mb-4">
-                <table id="dataTable" class="min-w-full divide-y divide-gray-300 bg-white rounded-lg overflow-hidden shadow-sm">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Rok</th>
-                            <th class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Kraj</th>
-                            <th class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Szczepienia 65+ (%)</th>
-                            <th class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Zgony na grypę 65+ (na 100 000)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200"></tbody>
-                </table>
-            </div>
-            <p id="copy-feedback" class="text-green-600 text-sm mt-2 hidden font-medium text-right">Skopiowano pomyślnie!</p>
-
-            <div class="bg-sky-50 border border-sky-100 rounded-lg p-4 mt-6">
-                <h3 class="font-bold text-gray-800 mb-3"><i class="fa-solid fa-link text-sky-600 mr-2"></i>Źródła danych</h3>
-                <ul class="space-y-2 text-sm text-gray-700">
-                    <li class="flex items-start">
-                        <i class="fa-solid fa-syringe text-gray-400 mt-1 mr-3"></i>
-                        <div>
-                            <strong>Eurostat - szczepienia przeciw grypie osób 65+:</strong><br>
-                            Zbiór: hlth_ps_immu, jednostka: procent osób w wieku 65 lat i więcej<br>
-                            <a href="https://ec.europa.eu/eurostat/databrowser/view/hlth_ps_immu/default/table" target="_blank" rel="noopener noreferrer" class="text-sky-600 hover:text-sky-800 underline">ec.europa.eu/eurostat - hlth_ps_immu</a>
-                        </div>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fa-solid fa-heart-pulse text-gray-400 mt-1 mr-3"></i>
-                        <div>
-                            <strong>Eurostat - zgony według przyczyn:</strong><br>
-                            Zbiór: hlth_cd_asdr2, ICD-10: J09-J11 Influenza, wiek: 65+, jednostka: standaryzowany współczynnik zgonów na 100 000<br>
-                            <a href="https://ec.europa.eu/eurostat/databrowser/view/hlth_cd_asdr2/default/table" target="_blank" rel="noopener noreferrer" class="text-sky-600 hover:text-sky-800 underline">ec.europa.eu/eurostat - hlth_cd_asdr2</a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
         </section>
 
-        <div class="card mt-4">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Wnioski i interpretacja wyników</h2>
-            <div class="space-y-4 text-gray-700 leading-relaxed mb-6">
+        <section class="panel p-6 lg:p-8 mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <div>
+                    <h2 class="text-2xl font-black">Dane surowe</h2>
+                    <p class="text-sm text-slate-500">Tabela przygotowana do skopiowania do Excela lub Gretla.</p>
+                </div>
+                <button onclick="copyTable()" class="inline-flex items-center justify-center px-4 py-2 text-sm font-bold text-white bg-teal-800 hover:bg-teal-900">
+                    <i class="fa-solid fa-copy mr-2"></i> Kopiuj tabelę
+                </button>
+            </div>
+            <div class="overflow-x-auto border border-slate-200">
+                <table id="dataTable" class="min-w-full divide-y divide-slate-200 bg-white">
+                    <thead class="bg-slate-900 text-white">
+                        <tr>
+                            <th class="py-3.5 pl-4 pr-3 text-left text-sm font-bold">Rok</th>
+                            <th class="px-3 py-3.5 text-left text-sm font-bold">Kraj</th>
+                            <th class="px-3 py-3.5 text-right text-sm font-bold">Szczepienia 65+ (%)</th>
+                            <th class="px-3 py-3.5 text-right text-sm font-bold">Zgony na grypę 65+ (na 100 000)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+            <p id="copy-feedback" class="text-teal-700 text-sm mt-3 hidden font-bold text-right">Skopiowano pomyślnie.</p>
+        </section>
+
+        <section class="panel p-6 lg:p-8 mb-8">
+            <h2 class="text-2xl font-black mb-5">Wnioski i interpretacja wyników</h2>
+            <div class="space-y-4 text-slate-700 leading-relaxed mb-6">
                 <p id="conclusion-1"></p>
                 <p>
                     Wyniki należy interpretować ostrożnie, ponieważ zgony na grypę są zjawiskiem rzadkim i silnie zależą od sezonu epidemicznego, struktury wieku, sposobu kodowania przyczyny zgonu oraz liczebności populacji. Szczególnie w małym kraju, takim jak Luksemburg, pojedyncze sezony mogą powodować duże wahania współczynnika. Analiza wskazuje kierunek zależności, ale nie dowodzi przyczynowości.
                 </p>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="summaryCards"></div>
-        </div>
+        </section>
+
+        <section class="panel p-6 lg:p-8">
+            <h2 class="text-2xl font-black mb-5">Źródła danych</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm text-slate-700">
+                <div class="metric p-4">
+                    <div class="flex gap-3">
+                        <i class="fa-solid fa-syringe text-teal-700 mt-1"></i>
+                        <div>
+                            <strong>Eurostat - szczepienia przeciw grypie osób 65+</strong><br>
+                            Zbiór: hlth_ps_immu, jednostka: procent osób w wieku 65 lat i więcej<br>
+                            <a href="https://ec.europa.eu/eurostat/databrowser/view/hlth_ps_immu/default/table" target="_blank" rel="noopener noreferrer" class="source-link">ec.europa.eu/eurostat - hlth_ps_immu</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric p-4">
+                    <div class="flex gap-3">
+                        <i class="fa-solid fa-heart-pulse text-amber-700 mt-1"></i>
+                        <div>
+                            <strong>Eurostat - zgony według przyczyn</strong><br>
+                            Zbiór: hlth_cd_asdr2, ICD-10: J09-J11 Influenza, wiek: 65+<br>
+                            <a href="https://ec.europa.eu/eurostat/databrowser/view/hlth_cd_asdr2/default/table" target="_blank" rel="noopener noreferrer" class="source-link">ec.europa.eu/eurostat - hlth_cd_asdr2</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <footer class="bg-white border-t border-gray-200 mt-12">
+    <footer class="border-t border-slate-200 mt-10">
         <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-            <p class="text-center text-gray-400 text-sm">
+            <p class="text-center text-slate-500 text-sm">
                 &copy; 2026 Praca przygotowana przez: Jakub Skwierawski, Łukasz Reszczyński, Krystian Turzyński, Przemysław Choma, Błażej Choma.
             </p>
         </div>
@@ -341,8 +479,8 @@
                 ['Współczynnik skośności', s.skewness.toFixed(4)]
             ].forEach(([label, value]) => {
                 const tr = document.createElement('tr');
-                tr.className = 'border-b border-gray-100';
-                tr.innerHTML = `<td class="py-2 pr-4 text-gray-600">${label}</td><td class="py-2 font-semibold text-gray-900 text-right">${value}</td>`;
+                tr.className = 'border-b border-slate-100';
+                tr.innerHTML = `<td class="py-2.5 pr-4 text-slate-600">${label}</td><td class="py-2.5 font-black text-slate-950 text-right">${value}</td>`;
                 tbody.appendChild(tr);
             });
 
@@ -355,7 +493,7 @@
                     datasets: [{
                         label: 'Szczepienia 65+ (%)',
                         data: barValues,
-                        backgroundColor: labels.map((_, i) => i < db.years.length ? 'rgba(79,70,229,0.75)' : 'rgba(16,185,129,0.75)'),
+                        backgroundColor: labels.map((_, i) => i < db.years.length ? 'rgba(55,48,163,0.82)' : 'rgba(15,118,110,0.82)'),
                         borderWidth: 0
                     }]
                 },
@@ -364,8 +502,8 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { beginAtZero: true, grid: { color: '#e5e7eb' }, title: { display: true, text: 'Szczepienia (%)' } },
-                        x: { ticks: { font: { size: 9 }, maxRotation: 70, minRotation: 45 } }
+                        y: { beginAtZero: true, grid: { color: '#e3e8e5' }, title: { display: true, text: 'Szczepienia (%)' } },
+                        x: { ticks: { font: { size: 9 }, maxRotation: 70, minRotation: 45 }, grid: { display: false } }
                     }
                 }
             });
@@ -375,10 +513,10 @@
                 data: {
                     labels: ['Szczepienia 65+ (%)'],
                     datasets: [
-                        { label: `Min-Q1 (${s.min.toFixed(1)}-${s.q1.toFixed(1)})`, data: [[s.min, s.q1]], backgroundColor: 'rgba(148,163,184,0.3)', borderColor: '#64748b', borderWidth: 1, borderSkipped: false },
-                        { label: `Q1-Med (${s.q1.toFixed(1)}-${s.median.toFixed(1)})`, data: [[s.q1, s.median]], backgroundColor: 'rgba(14,165,233,0.5)', borderColor: '#0ea5e9', borderWidth: 1, borderSkipped: false },
-                        { label: `Med-Q3 (${s.median.toFixed(1)}-${s.q3.toFixed(1)})`, data: [[s.median, s.q3]], backgroundColor: 'rgba(14,165,233,0.85)', borderColor: '#0ea5e9', borderWidth: 1, borderSkipped: false },
-                        { label: `Q3-Max (${s.q3.toFixed(1)}-${s.max.toFixed(1)})`, data: [[s.q3, s.max]], backgroundColor: 'rgba(148,163,184,0.3)', borderColor: '#64748b', borderWidth: 1, borderSkipped: false }
+                        { label: `Min-Q1 (${s.min.toFixed(1)}-${s.q1.toFixed(1)})`, data: [[s.min, s.q1]], backgroundColor: 'rgba(180,83,9,0.20)', borderColor: '#b45309', borderWidth: 1, borderSkipped: false },
+                        { label: `Q1-Med (${s.q1.toFixed(1)}-${s.median.toFixed(1)})`, data: [[s.q1, s.median]], backgroundColor: 'rgba(15,118,110,0.45)', borderColor: '#0f766e', borderWidth: 1, borderSkipped: false },
+                        { label: `Med-Q3 (${s.median.toFixed(1)}-${s.q3.toFixed(1)})`, data: [[s.median, s.q3]], backgroundColor: 'rgba(15,118,110,0.80)', borderColor: '#0f766e', borderWidth: 1, borderSkipped: false },
+                        { label: `Q3-Max (${s.q3.toFixed(1)}-${s.max.toFixed(1)})`, data: [[s.q3, s.max]], backgroundColor: 'rgba(180,83,9,0.20)', borderColor: '#b45309', borderWidth: 1, borderSkipped: false }
                     ]
                 },
                 options: {
@@ -387,7 +525,7 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: true, position: 'bottom', labels: { font: { size: 10 } } } },
                     scales: {
-                        x: { grid: { color: '#e5e7eb' }, title: { display: true, text: 'Szczepienia (%)' } },
+                        x: { grid: { color: '#e3e8e5' }, title: { display: true, text: 'Szczepienia (%)' } },
                         y: { display: false }
                     }
                 }
@@ -397,21 +535,24 @@
         function initSection2() {
             const yearLabels = db.years.map(String);
 
-            function makeLineChart(canvasId, dataset, yLabel, beginAtZero = true) {
+            function makeLineChart(canvasId, dataset, yLabel) {
                 new Chart(document.getElementById(canvasId), {
                     type: 'line',
                     data: {
                         labels: yearLabels,
                         datasets: [
-                            { label: 'Luksemburg', data: dataset.luxembourg, borderColor: 'rgba(79,70,229,1)', backgroundColor: 'rgba(79,70,229,0.1)', fill: true, tension: 0.25, pointRadius: 4, spanGaps: false },
-                            { label: 'Francja', data: dataset.france, borderColor: 'rgba(16,185,129,1)', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.25, pointRadius: 4, spanGaps: false }
+                            { label: 'Luksemburg', data: dataset.luxembourg, borderColor: '#3730a3', backgroundColor: 'rgba(55,48,163,0.10)', fill: true, tension: 0.25, pointRadius: 4 },
+                            { label: 'Francja', data: dataset.france, borderColor: '#0f766e', backgroundColor: 'rgba(15,118,110,0.10)', fill: true, tension: 0.25, pointRadius: 4 }
                         ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: { legend: { position: 'bottom' } },
-                        scales: { y: { beginAtZero, grid: { color: '#e5e7eb' }, title: { display: true, text: yLabel } } }
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: '#e3e8e5' }, title: { display: true, text: yLabel } },
+                            x: { grid: { display: false } }
+                        }
                     }
                 });
             }
@@ -423,14 +564,13 @@
             const allDeaths = [...db.influenzaDeaths65.luxembourg, ...db.influenzaDeaths65.france];
             const luxPairs = pairData(db.vaccination.luxembourg, db.influenzaDeaths65.luxembourg);
             const frPairs = pairData(db.vaccination.france, db.influenzaDeaths65.france);
-            const allPairs = pairData(allVacc, allDeaths);
 
             new Chart(document.getElementById('s2ScatterChart'), {
                 type: 'scatter',
                 data: {
                     datasets: [
-                        { label: 'Luksemburg', data: luxPairs, backgroundColor: 'rgba(79,70,229,0.75)', pointRadius: 6, pointHoverRadius: 8 },
-                        { label: 'Francja', data: frPairs, backgroundColor: 'rgba(16,185,129,0.75)', pointRadius: 6, pointHoverRadius: 8 }
+                        { label: 'Luksemburg', data: luxPairs, backgroundColor: 'rgba(55,48,163,0.80)', pointRadius: 6, pointHoverRadius: 8 },
+                        { label: 'Francja', data: frPairs, backgroundColor: 'rgba(15,118,110,0.80)', pointRadius: 6, pointHoverRadius: 8 }
                     ]
                 },
                 options: {
@@ -438,8 +578,8 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { position: 'bottom' } },
                     scales: {
-                        x: { title: { display: true, text: 'Szczepienia przeciw grypie 65+ (%)' }, grid: { color: '#e5e7eb' } },
-                        y: { title: { display: true, text: 'Zgony na grypę 65+ (na 100 000)' }, grid: { color: '#e5e7eb' } }
+                        x: { title: { display: true, text: 'Szczepienia przeciw grypie 65+ (%)' }, grid: { color: '#e3e8e5' } },
+                        y: { title: { display: true, text: 'Zgony na grypę 65+ (na 100 000)' }, grid: { color: '#e3e8e5' } }
                     }
                 }
             });
@@ -454,12 +594,12 @@
             ];
 
             document.getElementById('s2-regression-content').innerHTML = regressions.map(([name, reg, r2, r]) => `
-                <div class="bg-white rounded p-3 border border-blue-100">
-                    <p class="font-semibold text-gray-800 mb-1">${name}</p>
-                    <p class="font-mono text-sm">ŷ = ${reg.beta0.toFixed(2)} + (${reg.beta1.toFixed(4)}) · x</p>
-                    <p class="mt-1 text-sm">r = <strong>${r.toFixed(4)}</strong></p>
-                    <p class="mt-1 text-sm">R² = <strong>${r2.toFixed(4)}</strong></p>
-                    <p class="text-xs text-gray-500 mt-1">n = ${reg.n} par obserwacji</p>
+                <div class="bg-white/10 border border-white/20 p-3">
+                    <p class="font-black text-white mb-1">${name}</p>
+                    <p class="font-mono text-sm text-emerald-50">ŷ = ${reg.beta0.toFixed(2)} + (${reg.beta1.toFixed(4)}) · x</p>
+                    <p class="mt-1">r = <strong>${r.toFixed(4)}</strong></p>
+                    <p class="mt-1">R² = <strong>${r2.toFixed(4)}</strong></p>
+                    <p class="text-xs text-emerald-100 mt-1">n = ${reg.n} par obserwacji</p>
                 </div>
             `).join('');
         }
@@ -474,25 +614,25 @@
             const rate = stat.geoMeanRate(series);
 
             document.getElementById('s3-stats').innerHTML = `
-                <div class="bg-gray-50 p-3 rounded border border-gray-200">
-                    <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Model trendu liniowego</p>
-                    <p class="font-mono text-base text-gray-900">ŷ = ${a.toFixed(2)} + (${b.toFixed(2)}) · t</p>
-                    <p class="text-xs text-gray-500 mt-1">t = 1 (rok 2011) ... t = 13 (rok 2023)</p>
+                <div class="metric p-3">
+                    <p class="text-xs font-bold text-slate-500 uppercase mb-1">Model trendu liniowego</p>
+                    <p class="font-mono text-base text-slate-950">ŷ = ${a.toFixed(2)} + (${b.toFixed(2)}) · t</p>
+                    <p class="text-xs text-slate-500 mt-1">t = 1 (rok 2011) ... t = 13 (rok 2023)</p>
                 </div>
-                <div class="bg-gray-50 p-3 rounded border border-gray-200">
-                    <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Współczynnik determinacji</p>
-                    <p class="font-semibold text-gray-900">R² = ${r2.toFixed(4)}</p>
-                    <p class="text-xs text-gray-500">Model wyjaśnia ${(r2 * 100).toFixed(1)}% zmienności szeregu</p>
+                <div class="metric p-3">
+                    <p class="text-xs font-bold text-slate-500 uppercase mb-1">Współczynnik determinacji</p>
+                    <p class="font-black text-slate-950">R² = ${r2.toFixed(4)}</p>
+                    <p class="text-xs text-slate-500">Model wyjaśnia ${(r2 * 100).toFixed(1)}% zmienności szeregu</p>
                 </div>
-                <div class="bg-gray-50 p-3 rounded border border-gray-200">
-                    <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Średnie tempo zmian rocznie</p>
-                    <p class="font-semibold text-gray-900">${(rate * 100).toFixed(2)}%</p>
-                    <p class="text-xs text-gray-500">${rate >= 1 ? 'Średni wzrost' : 'Średni spadek'} o ${(Math.abs(rate - 1) * 100).toFixed(2)}% rocznie</p>
+                <div class="metric p-3">
+                    <p class="text-xs font-bold text-slate-500 uppercase mb-1">Średnie tempo zmian rocznie</p>
+                    <p class="font-black text-slate-950">${(rate * 100).toFixed(2)}%</p>
+                    <p class="text-xs text-slate-500">${rate >= 1 ? 'Średni wzrost' : 'Średni spadek'} o ${(Math.abs(rate - 1) * 100).toFixed(2)}% rocznie</p>
                 </div>
-                <div class="bg-gray-50 p-3 rounded border border-gray-200">
-                    <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Interpretacja parametru β₁</p>
-                    <p class="text-gray-700 text-sm">β₁ = ${b.toFixed(3)}: współczynnik zgonów zmienia się średnio o ${b.toFixed(3)} na 100 000 rocznie.</p>
-                    <p class="text-xs text-gray-500 mt-1 italic">Ocena istotności (p-value) - w programie Gretl</p>
+                <div class="metric p-3">
+                    <p class="text-xs font-bold text-slate-500 uppercase mb-1">Interpretacja parametru β₁</p>
+                    <p class="text-slate-700 text-sm">β₁ = ${b.toFixed(3)}: współczynnik zgonów zmienia się średnio o ${b.toFixed(3)} na 100 000 rocznie.</p>
+                    <p class="text-xs text-slate-500 mt-1 italic">Ocena istotności (p-value) - w programie Gretl</p>
                 </div>
             `;
 
@@ -501,15 +641,18 @@
                 data: {
                     labels: yearLabels,
                     datasets: [
-                        { label: 'Wartości rzeczywiste', data: series, borderColor: 'rgba(16,185,129,1)', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3, pointRadius: 5 },
-                        { label: `Trend: ŷ = ${a.toFixed(1)} + (${b.toFixed(2)})·t`, data: fitted, borderColor: 'rgba(239,68,68,0.85)', borderDash: [6,4], borderWidth: 2, backgroundColor: 'transparent', fill: false, pointRadius: 0, tension: 0 }
+                        { label: 'Wartości rzeczywiste', data: series, borderColor: '#0f766e', backgroundColor: 'rgba(15,118,110,0.12)', fill: true, tension: 0.3, pointRadius: 5 },
+                        { label: `Trend: ŷ = ${a.toFixed(1)} + (${b.toFixed(2)})·t`, data: fitted, borderColor: '#b45309', borderDash: [6,4], borderWidth: 2, backgroundColor: 'transparent', fill: false, pointRadius: 0, tension: 0 }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Zgony na grypę 65+ - Francja (2011-2023)' } },
-                    scales: { y: { beginAtZero: true, grid: { color: '#e5e7eb' }, title: { display: true, text: 'Zgony na 100 000' } } }
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#e3e8e5' }, title: { display: true, text: 'Zgony na 100 000' } },
+                        x: { grid: { display: false } }
+                    }
                 }
             });
         }
@@ -523,10 +666,10 @@
                 ].forEach(({ key, label }) => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">${year}</td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${label}</td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">${formatValue(db.vaccination[key][i], 2)}</td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">${formatValue(db.influenzaDeaths65[key][i], 2)}</td>
+                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-slate-950">${year}</td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-600">${label}</td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-600 text-right">${formatValue(db.vaccination[key][i], 2)}</td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-600 text-right">${formatValue(db.influenzaDeaths65[key][i], 2)}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -547,20 +690,20 @@
             `;
 
             document.getElementById('summaryCards').innerHTML = `
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                    <p class="text-2xl font-bold text-sky-700">r = ${allR.toFixed(2)}</p>
-                    <p class="text-sm font-semibold text-gray-700 mt-1">Szczepienia vs zgony</p>
-                    <p class="text-xs text-gray-500 mt-1">Luksemburg + Francja, komplet danych 2011-2023</p>
+                <div class="metric p-4 text-center">
+                    <p class="text-3xl font-black text-teal-800">r = ${allR.toFixed(2)}</p>
+                    <p class="text-sm font-bold text-slate-700 mt-1">Szczepienia vs zgony</p>
+                    <p class="text-xs text-slate-500 mt-1">Luksemburg + Francja, komplet danych 2011-2023</p>
                 </div>
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                    <p class="text-2xl font-bold text-sky-700">R² = ${allR2.toFixed(2)}</p>
-                    <p class="text-sm font-semibold text-gray-700 mt-1">Regresja liniowa</p>
-                    <p class="text-xs text-gray-500 mt-1">Odsetek zmienności opisany przez model</p>
+                <div class="metric p-4 text-center">
+                    <p class="text-3xl font-black text-indigo-800">R² = ${allR2.toFixed(2)}</p>
+                    <p class="text-sm font-bold text-slate-700 mt-1">Regresja liniowa</p>
+                    <p class="text-xs text-slate-500 mt-1">Odsetek zmienności opisany przez model</p>
                 </div>
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                    <p class="text-2xl font-bold text-sky-700">${trend.beta1.toFixed(2)}</p>
-                    <p class="text-sm font-semibold text-gray-700 mt-1">Trend Francja</p>
-                    <p class="text-xs text-gray-500 mt-1">Zmiana zgonów 65+ na 100 000 rocznie</p>
+                <div class="metric p-4 text-center">
+                    <p class="text-3xl font-black text-amber-700">${trend.beta1.toFixed(2)}</p>
+                    <p class="text-sm font-bold text-slate-700 mt-1">Trend Francja</p>
+                    <p class="text-xs text-slate-500 mt-1">Zmiana zgonów 65+ na 100 000 rocznie</p>
                 </div>
             `;
         }

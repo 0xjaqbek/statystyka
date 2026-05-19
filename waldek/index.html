@@ -244,7 +244,7 @@
             <div class="bg-teal-900 text-white p-5">
                 <h3 class="font-black mb-3">Model regresji liniowej: ŷ = β₀ + β₁ · szczepienia</h3>
                 <div id="s2-regression-content" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm"></div>
-                <p class="text-xs text-emerald-100 mt-3 italic">* Ocena istotności parametrów (p-value) może zostać wykonana w programie Gretl na tych samych danych.</p>
+                <p class="text-xs text-emerald-100 mt-3 italic">* p-value dotyczy istotności współczynnika kierunkowego β₁ przy poziomie istotności α = 0,05.</p>
             </div>
         </section>
 
@@ -422,11 +422,109 @@
                 const ssRes = x.reduce((sum, xi, i) => sum + (y[i] - (beta0 + beta1 * xi)) ** 2, 0);
                 return ssTot === 0 ? 1 : 1 - ssRes / ssTot;
             },
+            regressionStats(xArr, yArr) {
+                const pairs = pairData(xArr, yArr);
+                const x = pairs.map(p => p.x);
+                const y = pairs.map(p => p.y);
+                const reg = this.ols(x, y);
+                const xMean = this.mean(x);
+                const sxx = x.reduce((sum, xi) => sum + (xi - xMean) ** 2, 0);
+                const sse = x.reduce((sum, xi, i) => sum + (y[i] - (reg.beta0 + reg.beta1 * xi)) ** 2, 0);
+                const df = pairs.length - 2;
+                const mse = sse / df;
+                const seBeta1 = Math.sqrt(mse / sxx);
+                const tValue = reg.beta1 / seBeta1;
+                const pValue = studentTPValue(tValue, df);
+                return { ...reg, df, seBeta1, tValue, pValue };
+            },
             geoMeanRate(arr) {
                 const clean = this.clean(arr);
                 return Math.pow(clean[clean.length - 1] / clean[0], 1 / (clean.length - 1));
             }
         };
+
+        function logGamma(z) {
+            const coefficients = [
+                676.5203681218851,
+                -1259.1392167224028,
+                771.32342877765313,
+                -176.61502916214059,
+                12.507343278686905,
+                -0.13857109526572012,
+                9.9843695780195716e-6,
+                1.5056327351493116e-7
+            ];
+            if (z < 0.5) {
+                return Math.log(Math.PI) - Math.log(Math.sin(Math.PI * z)) - logGamma(1 - z);
+            }
+            z -= 1;
+            let x = 0.99999999999980993;
+            for (let i = 0; i < coefficients.length; i++) {
+                x += coefficients[i] / (z + i + 1);
+            }
+            const t = z + coefficients.length - 0.5;
+            return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
+        }
+
+        function betaContinuedFraction(x, a, b) {
+            const maxIterations = 100;
+            const epsilon = 1e-12;
+            const fpMin = 1e-30;
+            let qab = a + b;
+            let qap = a + 1;
+            let qam = a - 1;
+            let c = 1;
+            let d = 1 - qab * x / qap;
+            if (Math.abs(d) < fpMin) d = fpMin;
+            d = 1 / d;
+            let h = d;
+
+            for (let m = 1; m <= maxIterations; m++) {
+                const m2 = 2 * m;
+                let aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+                d = 1 + aa * d;
+                if (Math.abs(d) < fpMin) d = fpMin;
+                c = 1 + aa / c;
+                if (Math.abs(c) < fpMin) c = fpMin;
+                d = 1 / d;
+                h *= d * c;
+                aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+                d = 1 + aa * d;
+                if (Math.abs(d) < fpMin) d = fpMin;
+                c = 1 + aa / c;
+                if (Math.abs(c) < fpMin) c = fpMin;
+                d = 1 / d;
+                const del = d * c;
+                h *= del;
+                if (Math.abs(del - 1) < epsilon) break;
+            }
+
+            return h;
+        }
+
+        function regularizedBeta(x, a, b) {
+            if (x <= 0) return 0;
+            if (x >= 1) return 1;
+            const bt = Math.exp(logGamma(a + b) - logGamma(a) - logGamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+            if (x < (a + 1) / (a + b + 2)) {
+                return bt * betaContinuedFraction(x, a, b) / a;
+            }
+            return 1 - bt * betaContinuedFraction(1 - x, b, a) / b;
+        }
+
+        function studentTPValue(tValue, df) {
+            const x = df / (df + tValue * tValue);
+            return regularizedBeta(x, df / 2, 0.5);
+        }
+
+        function formatPValue(pValue) {
+            if (pValue < 0.001) return '< 0,001';
+            return pValue.toFixed(4).replace('.', ',');
+        }
+
+        function significanceText(pValue) {
+            return pValue < 0.05 ? 'istotny statystycznie' : 'nieistotny statystycznie';
+        }
 
         function pairData(xArr, yArr) {
             return xArr
@@ -584,9 +682,9 @@
                 }
             });
 
-            const luxReg = stat.ols(db.vaccination.luxembourg, db.influenzaDeaths65.luxembourg);
-            const frReg = stat.ols(db.vaccination.france, db.influenzaDeaths65.france);
-            const allReg = stat.ols(allVacc, allDeaths);
+            const luxReg = stat.regressionStats(db.vaccination.luxembourg, db.influenzaDeaths65.luxembourg);
+            const frReg = stat.regressionStats(db.vaccination.france, db.influenzaDeaths65.france);
+            const allReg = stat.regressionStats(allVacc, allDeaths);
             const regressions = [
                 ['Luksemburg', luxReg, stat.rSquared(db.vaccination.luxembourg, db.influenzaDeaths65.luxembourg), stat.pearson(db.vaccination.luxembourg, db.influenzaDeaths65.luxembourg)],
                 ['Francja', frReg, stat.rSquared(db.vaccination.france, db.influenzaDeaths65.france), stat.pearson(db.vaccination.france, db.influenzaDeaths65.france)],
@@ -599,6 +697,8 @@
                     <p class="font-mono text-sm text-emerald-50">ŷ = ${reg.beta0.toFixed(2)} + (${reg.beta1.toFixed(4)}) · x</p>
                     <p class="mt-1">r = <strong>${r.toFixed(4)}</strong></p>
                     <p class="mt-1">R² = <strong>${r2.toFixed(4)}</strong></p>
+                    <p class="mt-1">p-value β₁ = <strong>${formatPValue(reg.pValue)}</strong></p>
+                    <p class="text-xs text-emerald-100 mt-1">β₁: ${significanceText(reg.pValue)}</p>
                     <p class="text-xs text-emerald-100 mt-1">n = ${reg.n} par obserwacji</p>
                 </div>
             `).join('');
@@ -608,7 +708,8 @@
             const series = db.influenzaDeaths65.france;
             const timeIndex = series.map((_, i) => i + 1);
             const yearLabels = db.years.map(String);
-            const { beta0: a, beta1: b } = stat.ols(timeIndex, series);
+            const trendStats = stat.regressionStats(timeIndex, series);
+            const { beta0: a, beta1: b } = trendStats;
             const fitted = timeIndex.map(t => a + b * t);
             const r2 = stat.rSquared(timeIndex, series);
             const rate = stat.geoMeanRate(series);
@@ -632,7 +733,7 @@
                 <div class="metric p-3">
                     <p class="text-xs font-bold text-slate-500 uppercase mb-1">Interpretacja parametru β₁</p>
                     <p class="text-slate-700 text-sm">β₁ = ${b.toFixed(3)}: współczynnik zgonów zmienia się średnio o ${b.toFixed(3)} na 100 000 rocznie.</p>
-                    <p class="text-xs text-slate-500 mt-1 italic">Ocena istotności (p-value) - w programie Gretl</p>
+                    <p class="text-xs text-slate-500 mt-1">p-value β₁ = <strong>${formatPValue(trendStats.pValue)}</strong>; parametr jest ${significanceText(trendStats.pValue)} przy α = 0,05.</p>
                 </div>
             `;
 
@@ -683,10 +784,10 @@
             const allR2 = stat.rSquared(allVacc, allDeaths);
             const luxR = stat.pearson(db.vaccination.luxembourg, db.influenzaDeaths65.luxembourg);
             const frR = stat.pearson(db.vaccination.france, db.influenzaDeaths65.france);
-            const trend = stat.ols(db.influenzaDeaths65.france.map((_, i) => i + 1), db.influenzaDeaths65.france);
+            const trend = stat.regressionStats(db.influenzaDeaths65.france.map((_, i) => i + 1), db.influenzaDeaths65.france);
 
             document.getElementById('conclusion-1').innerHTML = `
-                Dla połączonych danych z Luksemburga i Francji współczynnik korelacji Pearsona wynosi <strong>r = ${allR.toFixed(2)}</strong>, a współczynnik determinacji modelu regresji <strong>R² = ${allR2.toFixed(2)}</strong>. Oznacza to, że w badanej próbie zależność liniowa między odsetkiem szczepień a zgonami na grypę nie ma prostego, jednoznacznie ujemnego charakteru. Dla Luksemburga korelacja wynosi <strong>r = ${luxR.toFixed(2)}</strong>, a dla Francji <strong>r = ${frR.toFixed(2)}</strong>. Wahania umieralności są silnie związane z sezonowością grypy, a lata pandemiczne dodatkowo utrudniają prostą interpretację zależności.
+                Dla połączonych danych z Luksemburga i Francji współczynnik korelacji Pearsona wynosi <strong>r = ${allR.toFixed(2)}</strong>, a współczynnik determinacji modelu regresji <strong>R² = ${allR2.toFixed(2)}</strong>. Współczynnik kierunkowy modelu łącznego ma <strong>p-value = ${formatPValue(stat.regressionStats(allVacc, allDeaths).pValue)}</strong>, więc jest ${significanceText(stat.regressionStats(allVacc, allDeaths).pValue)} przy α = 0,05. Dla Luksemburga korelacja wynosi <strong>r = ${luxR.toFixed(2)}</strong>, a dla Francji <strong>r = ${frR.toFixed(2)}</strong>. Wahania umieralności są silnie związane z sezonowością grypy, a lata pandemiczne dodatkowo utrudniają prostą interpretację zależności.
             `;
 
             document.getElementById('summaryCards').innerHTML = `

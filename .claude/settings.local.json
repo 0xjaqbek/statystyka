@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:bdl.stat.gov.pl)",
+      "WebFetch(domain:ghoapi.azureedge.net)",
+      "WebFetch(domain:api.worldbank.org)",
+      "WebFetch(domain:www.macrotrends.net)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:www.imf.org)",
+      "WebFetch(domain:fred.stlouisfed.org)",
+      "WebFetch(domain:statbase.org)",
+      "WebFetch(domain:countryeconomy.com)"
+    ]
+  }
+}
